@@ -1,24 +1,30 @@
 #include <string>
 #pragma once
 
-#define NOTYPE 1 << 0
-#define UPDATESIZE 1 << 1
-#define UPDATEPOSITION 1 << 2
+#define UPDATESIZE 1 << 0
+#define UPDATEPOSITION 1 << 1
 #define UPDATETITLE 1 << 2
-#define UPDATEBACKGROUNDCOLOUR 1 << 4
-#define UPDATEBORDERCOLOUR 1 << 5
-#define UPDATEBORDERWIDTH 1 << 6
-#define UPDATEBORDERRADIUS 1 << 7
-#define CLOSE 1 << 8
+#define UPDATEBACKGROUNDCOLOUR 1 << 3
+#define UPDATEBORDERCOLOUR 1 << 4
+#define UPDATEBORDERWIDTH 1 << 5
+#define UPDATEBORDERRADIUS 1 << 6
+#define NOTYPE UPDATESIZE | UPDATEPOSITION | UPDATETITLE | UPDATEBACKGROUNDCOLOUR | UPDATEBORDERCOLOUR | UPDATEBORDERWIDTH | UPDATEBORDERRADIUS
+#define CLOSE 1 << 7
 
-#define NOCHANGE 1 << 0
-#define UPDATESIZE 1 << 1
-#define UPDATEPOSITION 1 << 2
-#define UPDATEROTATION 1 << 3
-#define UPDATECOLOUR 1 << 4
+#define NOCHANGE 0
+#define UPDATESIZE 1 << 0
+#define UPDATEPOSITION 1 << 1
+#define UPDATEROTATION 1 << 2
+#define UPDATECOLOUR 1 << 3
+#define ALLCHANGES UPDATESIZE | UPDATEPOSITION | UPDATEROTATION | UPDATECOLOUR
 
 namespace lgui {
     namespace util {
+
+        /**
+         * @brief Colour is a struct that is used to store colour information
+         * 
+         */
         struct Colour {
             unsigned short r, g, b, a;
             Colour() {
@@ -28,13 +34,17 @@ namespace lgui {
                 this->a = 0;
             }
             Colour(int r, int g, int b, int a) {
-                this->r = r;
-                this->g = g;
-                this->b = b;
-                this->a = a;
+                this->r = (r * 65535) / 255;
+                this->g = (g * 65535) / 255;
+                this->b = (b * 65535) / 255;
+                this->a = (a * 65535) / 255;
             }
         };
 
+        /**
+         * @brief StateInfo is a struct that is used to store information about certain states such as mouse press, mouse release, key press, key release and mouse position
+         * 
+         */
         struct StateInfo {
             int x, y;
             bool mousepress, mouserelease;
@@ -60,6 +70,10 @@ namespace lgui {
             }
         };
 
+        /**
+         * @brief WindowRequest is a struct that is used to request changes to a window
+         * 
+         */
         struct WindowRequest {
             int type;
             int x, y;
@@ -86,6 +100,10 @@ namespace lgui {
             }
         };
 
+        /**
+         * @brief ObjectRequest is a struct that is used to request changes to an object
+         * 
+         */
         struct ObjectRequest {
             int type;
             float x, y;

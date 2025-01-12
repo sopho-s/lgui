@@ -15,9 +15,9 @@ namespace lgui {
             XSetLineAttributes(display, gc, 1, LineSolid, CapButt, JoinBevel);
             XSetFillStyle(display, gc, FillSolid);
             if (this->filled) {
-                XFillRectangle(display, window, gc, x, y, (unsigned int)width, (unsigned int)height);
+                XFillRectangle(display, window, gc, x, y, width, height);
             } else {
-                XDrawRectangle(display, window, gc, x, y, (unsigned int)width, (unsigned int)height);
+                XDrawRectangle(display, window, gc, x, y, width, height);
             }
         }
 

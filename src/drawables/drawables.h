@@ -7,16 +7,41 @@
 
 namespace lgui {
     namespace drawables {
+        /**
+         * @brief A base class for all drawable objects
+         * 
+         */
         class lDrawable {
             public:
+                /**
+                 * @brief Draws the object on the window
+                 * 
+                 * @param display The display to draw on
+                 * @param window The window to draw on
+                 * @param gc The graphics context to draw with
+                 */
                 virtual void draw(Display* display, Window& window, GC& gc) = 0;
         };
 
+        /**
+         * @brief A rectangle drawable object
+         * 
+         */
         class lRectangle : public lDrawable {
             public:
                 unsigned int x, y, width, height;
                 util::Colour colour;
                 bool filled;
+                /**
+                 * @brief Construct a new l Rectangle object
+                 * 
+                 * @param x The x position of the rectangle
+                 * @param y The y position of the rectangle
+                 * @param width The width of the rectangle
+                 * @param height The height of the rectangle
+                 * @param colour The colour of the rectangle
+                 * @param filled Whether the rectangle is filled or not
+                 */
                 lRectangle(int x, int y, int width, int height, util::Colour colour, bool filled = true) {
                     this->x = x;
                     this->y = y;
@@ -25,14 +50,34 @@ namespace lgui {
                     this->colour = colour;
                     this->filled = filled;
                 }
+                /**
+                 * @brief Draws the rectangle on the window
+                 * 
+                 * @param display The display to draw on
+                 * @param window The window to draw on
+                 * @param gc The graphics context to draw with
+                 */
                 void draw(Display* display, Window& window, GC& gc) override;
         };
 
+        /**
+         * @brief A circle drawable object
+         * 
+         */
         class lCircle : public lDrawable {
             public:
                 unsigned int x, y, radius;
                 util::Colour colour;
                 bool filled;
+                /**
+                 * @brief Construct a new l Circle object
+                 * 
+                 * @param x The x position of the circle
+                 * @param y The y position of the circle
+                 * @param radius The radius of the circle
+                 * @param colour The colour of the circle
+                 * @param filled Whether the circle is filled or not
+                 */
                 lCircle(int x, int y, int radius, util::Colour colour, bool filled = true) {
                     this->x = x;
                     this->y = y;
@@ -40,15 +85,35 @@ namespace lgui {
                     this->colour = colour;
                     this->filled = filled;
                 }
+                /**
+                 * @brief Draws the circle on the window
+                 * 
+                 * @param display The display to draw on
+                 * @param window The window to draw on
+                 * @param gc The graphics context to draw with
+                 */
                 void draw(Display* display, Window& window, GC& gc) override;
         };
 
+        /**
+         * @brief A text drawable object
+         * 
+         */
         class lText : public lDrawable {
             public:
                 unsigned int x, y;
                 std::string text;
                 util::Colour colour;
                 XTextItem text_item;
+                /**
+                 * @brief Construct a new l Text object
+                 * 
+                 * @param x The x position of the text
+                 * @param y The y position of the text
+                 * @param text The text to display
+                 * @param colour The colour of the text
+                 * @param font The font of the text
+                 */
                 lText(int x, int y, std::string text, util::Colour colour, Font font = None) {
                     this->x = x;
                     this->y = y;
@@ -59,9 +124,20 @@ namespace lgui {
                     text_item.delta = 0;
                     text_item.font = font;
                 }
+                /**
+                 * @brief Draws the text on the window
+                 * 
+                 * @param display The display to draw on
+                 * @param window The window to draw on
+                 * @param gc The graphics context to draw with
+                 */
                 void draw(Display* display, Window& window, GC& gc) override;
         };
         
+        /**
+         * @brief A PNG image drawable object (DOES NOT WORK)
+         * 
+         */
         class lPNGImage : public lDrawable {
             public:
                 unsigned int x, y, width, height;
@@ -70,6 +146,13 @@ namespace lgui {
                 png_structp png;
                 png_infop info;
                 unsigned char** data;
+                /**
+                 * @brief Construct a new l PNG Image object
+                 * 
+                 * @param x The x position of the image
+                 * @param y The y position of the image
+                 * @param image The image file to display
+                 */
                 lPNGImage(int x, int y, std::string image) {
                     this->x = x;
                     this->y = y;
@@ -107,6 +190,13 @@ namespace lgui {
                     png_destroy_read_struct(&png, &info, NULL);
                     fclose(file);
                 }
+                /**
+                 * @brief Draws the PNG image on the window
+                 * 
+                 * @param display The display to draw on
+                 * @param window The window to draw on
+                 * @param gc The graphics context to draw with
+                 */
                 void draw(Display* display, Window& window, GC& gc) override;
         };
     }

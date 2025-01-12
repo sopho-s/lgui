@@ -12,7 +12,6 @@ namespace lgui {
             XSelectInput(this->display, window, StructureNotifyMask | ExposureMask | KeyPressMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask | Button1MotionMask | Button2MotionMask | Button3MotionMask | Button4MotionMask | Button5MotionMask | KeyReleaseMask | EnterWindowMask | LeaveWindowMask | FocusChangeMask | PropertyChangeMask | VisibilityChangeMask | ColormapChangeMask | OwnerGrabButtonMask | ResizeRedirectMask | SubstructureRedirectMask  | ButtonMotionMask | KeymapStateMask | ResizeRedirectMask);
             XMapWindow(this->display, window);
             this->graphics_context = XCreateGC(this->display, this->window, 0, NULL);
-            XSync(this->display, False);
             for(;;) {
                 XEvent e;
                 XNextEvent(this->display, &e);
@@ -126,26 +125,21 @@ namespace lgui {
                 for (auto const& pair : this->objects) {
                     std::vector<util::WindowRequest> requests = pair.second->update(deltatime);
                     for (util::WindowRequest request : requests) {
-                        if (request.type == NOTYPE) {
+                        if (request.type & UPDATESIZE) {
                             this->set_size(request.width, request.height);
+                        } else if (request.type & UPDATEPOSITION) {
                             this->set_position(request.x, request.y);
+                        } else if (request.type & UPDATETITLE) {
                             this->set_title(request.title);
+                        } else if (request.type & UPDATEBACKGROUNDCOLOUR) {
                             this->set_background_colour(request.background_colour);
-                        } else if (request.type == UPDATESIZE) {
-                            this->set_size(request.width, request.height);
-                        } else if (request.type == UPDATEPOSITION) {
-                            this->set_position(request.x, request.y);
-                        } else if (request.type == UPDATETITLE) {
-                            this->set_title(request.title);
-                        } else if (request.type == UPDATEBACKGROUNDCOLOUR) {
-                            this->set_background_colour(request.background_colour);
-                        } else if (request.type == UPDATEBORDERCOLOUR) {
+                        } else if (request.type & UPDATEBORDERCOLOUR) {
                             ;
-                        } else if (request.type == UPDATEBORDERWIDTH) {
+                        } else if (request.type & UPDATEBORDERWIDTH) {
                             ;
-                        } else if (request.type == UPDATEBORDERRADIUS) {
+                        } else if (request.type & UPDATEBORDERRADIUS) {
                             ;
-                        } else if (request.type == CLOSE) {
+                        } else if (request.type & CLOSE) {
                             this->hide();
                             return;
                         }
