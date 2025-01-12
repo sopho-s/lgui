@@ -1,4 +1,5 @@
 #include <X11/Xlib.h>
+#include <X11/Xutil.h>
 #include "../util/util.h"
 #include <string>
 #include <png.h>
@@ -145,7 +146,8 @@ namespace lgui {
                 std::string image_file;
                 png_structp png;
                 png_infop info;
-                unsigned char** data;
+                png_bytep* data;
+                XImage* image = nullptr;
                 /**
                  * @brief Construct a new l PNG Image object
                  * 
@@ -180,14 +182,15 @@ namespace lgui {
 
                     true_width = png_get_image_width(png, info);
                     true_height = png_get_image_height(png, info);
-                    *data = (unsigned char*)malloc(png_get_rowbytes(png, info) * (true_height));
-                    png_bytep* row_pointers = (png_bytep*)malloc(sizeof(png_bytep) * (true_height));
-                    for (int y = 0; y < height; y++) {
-                        row_pointers[y] = *data + y * png_get_rowbytes(png, info);
+                    width = true_width;
+                    height = true_height;
+                    size_t bytesrow = png_get_rowbytes(png, info);
+                    size_t totalsize = bytesrow * true_height;
+                    data = (png_bytep*)malloc(totalsize);
+                    for (int i = 0; i < true_height; i++) {
+                        data[i] = (png_bytep)malloc(png_get_rowbytes(png, info));
                     }
-                    png_read_image(png, row_pointers);
-                    free(row_pointers);
-                    png_destroy_read_struct(&png, &info, NULL);
+                    png_read_image(png, data);
                     fclose(file);
                 }
                 /**

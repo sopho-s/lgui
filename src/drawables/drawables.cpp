@@ -56,7 +56,17 @@ namespace lgui {
         }
 
         void lPNGImage::draw(Display* display, Window& window, GC& gc) {
-            XImage* image = XCreateImage(display, DefaultVisual(display, DefaultScreen(display)), 24, ZPixmap, 0, (char*)data, width, height, 32, 0);
+            if (image == nullptr) {
+                image = XCreateImage(display, DefaultVisual(display, DefaultScreen(display)), 24, ZPixmap, 0,(char *)malloc(width * height * 4), width, height, 32, 0);
+                for (int y = 0; y < height; y++) {
+                    png_bytep row = data[y];
+                    for (png_uint_32 x = 0; x < width; x++) {
+                        png_byte *ptr = &(row[x * 4]);
+                        unsigned long pixel = (ptr[0] << 16) | (ptr[1] << 8) | ptr[2];
+                        XPutPixel(image, x, y, pixel);
+                    }
+                }
+            }
             XPutImage(display, window, gc, image, 0, 0, x, y, width, height);
         }
     }

@@ -154,9 +154,11 @@ namespace lgui {
                 for (XEvent e : this->get_events()) {
                     std::vector<util::WindowRequest> requests;
                     if (e.type == Expose) {
+                        this->clear();
                         for (auto const& pair : this->objects) {
                             requests = pair.second->update(deltatime);
                         }
+                        this->flush();
                     } else if (e.type == KeyPress) {
                         util::StateInfo updateinfo = util::StateInfo(e.xkey.x, e.xkey.y, false, false, true, false, e.xkey.keycode);
                         for (auto const& pair : this->objects) {
