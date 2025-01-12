@@ -4,6 +4,7 @@
 #include <string>
 #include <png.h>
 #include <fstream>
+#include <vector>
 #pragma once
 
 namespace lgui {
@@ -22,6 +23,7 @@ namespace lgui {
                  * @param gc The graphics context to draw with
                  */
                 virtual void draw(Display* display, Window& window, GC& gc) = 0;
+                virtual std::vector<util::ClearArea> get_clear_areas() = 0;
         };
 
         /**
@@ -59,6 +61,9 @@ namespace lgui {
                  * @param gc The graphics context to draw with
                  */
                 void draw(Display* display, Window& window, GC& gc) override;
+                std::vector<util::ClearArea> get_clear_areas() override {
+                    return std::vector<util::ClearArea> {util::ClearArea(x, y, width, height)};
+                }
         };
 
         /**
@@ -94,6 +99,14 @@ namespace lgui {
                  * @param gc The graphics context to draw with
                  */
                 void draw(Display* display, Window& window, GC& gc) override;
+                /**
+                 * @brief Get the clear area object
+                 * 
+                 * @return util::ClearArea 
+                 */
+                std::vector<util::ClearArea> get_clear_areas() override {
+                    return std::vector<util::ClearArea> {util::ClearArea(x - radius, y - radius, radius * 2, radius * 2)};
+                }
         };
 
         /**
@@ -133,6 +146,14 @@ namespace lgui {
                  * @param gc The graphics context to draw with
                  */
                 void draw(Display* display, Window& window, GC& gc) override;
+                /**
+                 * @brief Get the clear area object
+                 * 
+                 * @return util::ClearArea 
+                 */
+                std::vector<util::ClearArea> get_clear_areas() override {
+                    return std::vector<util::ClearArea> {util::ClearArea(x, y, text.length() * 10, 10)};
+                }
         };
         
         /**
@@ -201,6 +222,14 @@ namespace lgui {
                  * @param gc The graphics context to draw with
                  */
                 void draw(Display* display, Window& window, GC& gc) override;
+                /**
+                 * @brief Get the clear area object
+                 * 
+                 * @return util::ClearArea 
+                 */
+                std::vector<util::ClearArea> get_clear_areas() override {
+                    return std::vector<util::ClearArea> {util::ClearArea(0, 0, 1, 1)};
+                }
         };
     }
 }

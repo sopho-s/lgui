@@ -129,5 +129,25 @@ namespace lgui {
                 this->colour = Colour(0, 0, 0, 0);
             }
         };
+
+        /**
+         * @brief ClearArea is a struct that is used to store information about an area to clear
+         * 
+         */
+        struct ClearArea {
+            int x, y, width, height;
+            ClearArea() {
+                this->x = 0;
+                this->y = 0;
+                this->width = 0;
+                this->height = 0;
+            }
+            ClearArea(int x, int y, int width, int height) {
+                this->x = x;
+                this->y = y;
+                this->width = width;
+                this->height = height;
+            }
+        };
     }
 }

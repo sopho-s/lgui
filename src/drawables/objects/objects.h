@@ -82,6 +82,12 @@ namespace lgui {
                  * @return std::vector<util::WindowRequest> The requests to make to the window
                  */
                 virtual std::vector<util::WindowRequest> key_release(util::StateInfo updateinfo) = 0;
+                /**
+                 * @brief Gets the clear area of the object
+                 * 
+                 * @return util::ClearArea The clear area of the object
+                 */
+                virtual std::vector<util::ClearArea> get_clear_areas() = 0;
             };
 
             /**
@@ -180,6 +186,14 @@ namespace lgui {
                  * @return std::vector<util::WindowRequest> The requests to make to the window
                  */
                 virtual std::vector<util::WindowRequest> key_release(util::StateInfo updateinfo);
+                /**
+                 * @brief Gets the clear area of the object
+                 * 
+                 * @return util::ClearArea The clear area of the object
+                 */
+                virtual std::vector<util::ClearArea> get_clear_areas() override {
+                    return this->rect->get_clear_areas();
+                }
             };
 
             /**
@@ -273,6 +287,14 @@ namespace lgui {
                  * @return std::vector<util::WindowRequest> The requests to make to the window
                  */
                 virtual std::vector<util::WindowRequest> key_release(util::StateInfo updateinfo);
+                /**
+                 * @brief Gets the clear area of the object
+                 * 
+                 * @return util::ClearArea The clear area of the object
+                 */
+                virtual std::vector<util::ClearArea> get_clear_areas() override {
+                    return this->png->get_clear_areas();
+                }   
             };
         }
     }

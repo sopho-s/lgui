@@ -59,6 +59,13 @@ namespace lgui {
             XClearWindow(this->display, this->window);
         }
 
+        void lWindow::clear(std::vector<util::ClearArea> clearareas) {
+            // Clear window in certain areas
+            for (util::ClearArea cleararea : clearareas) {
+                XClearArea(this->display, this->window, cleararea.x, cleararea.y, cleararea.width, cleararea.height, false);
+            }
+        }
+
         void lWindow::set_title(const std::string& title) {
             this->title = title;
             if (this->shown) {
@@ -119,6 +126,13 @@ namespace lgui {
                 if (waitedtime < time) {
                     std::this_thread::sleep_for(std::chrono::duration<float>(time - waitedtime));
                 }
+                std::vector<util::ClearArea> clearareas = std::vector<util::ClearArea>();
+                for (auto const& pair: this->objects) {
+                    std::vector<util::ClearArea> objectclearareas = pair.second->get_clear_areas();
+                    for (util::ClearArea cleararea : objectclearareas) {
+                        clearareas.push_back(cleararea);
+                    }
+                }
                 auto end = std::chrono::high_resolution_clock::now();
                 elapsed = end - start;
                 deltatime = elapsed.count() / 1000000000.0;
@@ -145,7 +159,7 @@ namespace lgui {
                         }
                     }
                 }
-                this->clear();
+                this->clear(clearareas);
                 for (auto const& pair : this->objects) {
                     pair.second->draw(this->display, this->window, this->graphics_context);
                 }
@@ -154,7 +168,6 @@ namespace lgui {
                 for (XEvent e : this->get_events()) {
                     std::vector<util::WindowRequest> requests;
                     if (e.type == Expose) {
-                        this->clear();
                         for (auto const& pair : this->objects) {
                             requests = pair.second->update(deltatime);
                         }
@@ -211,6 +224,7 @@ namespace lgui {
                         }
                     }
                 }
+                XSync(this->display, true);
             }
         }
 

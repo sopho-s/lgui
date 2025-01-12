@@ -121,6 +121,12 @@ namespace lgui {
                  */
                 void clear();
                 /**
+                 * @brief Clears the window in certain areas
+                 * 
+                 * @param clearareas The areas to clear
+                 */
+                void clear(std::vector<util::ClearArea> clearareas);
+                /**
                  * @brief Gets the events that have happened since the last call to this function
                  * 
                  * @return std::vector<XEvent> The events that have happened since the last call to this function
