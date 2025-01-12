@@ -1,7 +1,13 @@
 #include "../util/util.h"
 #include "X11/Xlib.h"
+#include "../drawables/drawables.h"
+#include "../drawables/objects/objects.h"
 #include <string>
-#pragma
+#include <vector>
+#include <chrono>
+#include <thread>
+#include <map>
+#pragma once
 
 namespace lgui {
     namespace window {
@@ -21,8 +27,10 @@ namespace lgui {
                 Display* display;
                 Window window;
                 GC graphics_context;
+                std::map<std::string, drawables::objects::Object*> objects;
             public:
                 lWindow() {
+                    this->title = "";
                     this->display = XOpenDisplay(NULL);
                     this->x = 0;
                     this->y = 0;
@@ -43,16 +51,20 @@ namespace lgui {
                 void show();
                 void hide();
                 void set_title(const std::string& title);
-                void set_size(int width, int height) {
-                    this->width = width;
-                    this->height = height;
-                }
+                void set_size(int width, int height);
                 void set_position(int x, int y);
                 void set_background_colour(const util::Colour& colour);
                 void set_border_colour(const util::Colour& colour);
                 void set_border_width(int width);
                 void set_border_radius(int radius);
                 void flush();
+                void clear();
+                std::vector<XEvent> get_events();
+                void clear_events();
+                void draw(drawables::lDrawable& drawable);
+                Font get_font();
+                void main_loop(int fps);
+                void add_object(std::string name, drawables::objects::Object* object);
         };
     }
 }
