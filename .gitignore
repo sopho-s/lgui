@@ -1,3 +1,5 @@
 /.vscode
 /build
 pic.png
+/doxygen
+Doxyfile
