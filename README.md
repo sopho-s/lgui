@@ -1,6 +1,6 @@
 # lgui
 
-lgui is an easy but basic (for now) gui library for c++
+lgui is an easy but basic gui library for c++
 
 ```c++
 #include "window/window.h"
