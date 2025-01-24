@@ -8,6 +8,7 @@ add_executable(lgui main.cpp)
 
 find_package(X11 REQUIRED)
 find_package(PNG REQUIRED)
+find_package(PkgConfig REQUIRED)
 link_libraries(${X11_LIBRARIES})
 link_libraries(PNG::PNG)
 include_directories(${X11_INCLUDE_DIR})

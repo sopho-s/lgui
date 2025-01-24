@@ -97,8 +97,10 @@ namespace lgui {
             class oRectangle : public Object {
             private:
                 float x, y, width, height;
+                float prevx, prevy, prevwidth, prevheight;
                 util::Colour colour;
                 bool filled;
+                bool prevfilled;
                 lRectangle* rect;
                 RectangleBound bound;
                 std::vector<animations::Animation*> animations;
@@ -192,7 +194,10 @@ namespace lgui {
                  * @return util::ClearArea The clear area of the object
                  */
                 virtual std::vector<util::ClearArea> get_clear_areas() override {
-                    return this->rect->get_clear_areas();
+                    if (this->prevx != this->prevy || this->prevwidth != this->width || this->prevheight != this->height || this->filled != this->prevfilled) {
+                        return this->rect->get_clear_areas();
+                    }
+                    return std::vector<util::ClearArea>();
                 }
             };
 
@@ -203,6 +208,7 @@ namespace lgui {
             class oPNG : public Object {
             private:
                 float x, y, width, height;
+                float prevx, prevy, prevwidth, prevheight;
                 lPNGImage* png;
                 RectangleBound bound;
                 std::vector<animations::Animation*> animations;
@@ -293,7 +299,10 @@ namespace lgui {
                  * @return util::ClearArea The clear area of the object
                  */
                 virtual std::vector<util::ClearArea> get_clear_areas() override {
-                    return this->png->get_clear_areas();
+                    if (this->prevx != this->prevy || this->prevwidth != this->width || this->prevheight != this->height) {
+                        return this->png->get_clear_areas();
+                    }
+                    return std::vector<util::ClearArea>();
                 }   
             };
         }

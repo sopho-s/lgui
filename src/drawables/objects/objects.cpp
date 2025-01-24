@@ -8,11 +8,18 @@ namespace lgui {
             }
 
             std::vector<util::WindowRequest> oRectangle::update(float deltatime) {
+                this->prevx = this->x;
+                this->prevy = this->y;
+                this->prevwidth = this->width;
+                this->prevheight = this->height;
+                this->prevfilled = this->filled;
                 for (animations::Animation* animation : this->animations) {
                     util::ObjectRequest request = animation->update(deltatime);
                     if (request.type & UPDATEPOSITION) {
                         this->rect->x = request.x;
+                        this->x = request.x;
                         this->rect->y = request.y;
+                        this->y = request.y;
                         this->bound.set_position(request.x, request.y);
                     }
                 }
@@ -44,11 +51,17 @@ namespace lgui {
             }
 
             std::vector<util::WindowRequest> oPNG::update(float deltatime) {
+                this->prevx = this->x;
+                this->prevy = this->y;
+                this->prevwidth = this->width;
+                this->prevheight = this->height;
                 for (animations::Animation* animation : this->animations) {
                     util::ObjectRequest request = animation->update(deltatime);
                     if (request.type & UPDATEPOSITION) {
                         this->png->x = request.x;
+                        this->x = request.x;
                         this->png->y = request.y;
+                        this->y = request.y;
                         this->bound.set_position(request.x, request.y);
                     }
                 }

@@ -159,11 +159,6 @@ namespace lgui {
                         }
                     }
                 }
-                this->clear(clearareas);
-                for (auto const& pair : this->objects) {
-                    pair.second->draw(this->display, this->window, this->graphics_context);
-                }
-                this->flush();
                 start = std::chrono::high_resolution_clock::now();
                 for (XEvent e : this->get_events()) {
                     std::vector<util::WindowRequest> requests;
@@ -224,6 +219,11 @@ namespace lgui {
                         }
                     }
                 }
+                this->clear(clearareas);
+                for (auto const& pair : this->objects) {
+                    pair.second->draw(this->display, this->window, this->graphics_context);
+                }
+                this->flush();
                 XSync(this->display, true);
             }
         }
