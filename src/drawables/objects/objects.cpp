@@ -3,8 +3,36 @@
 namespace lgui {
     namespace drawables {
         namespace objects {
-            void oRectangle::draw(Display* display, Window& window, GC& gc) {
-                this->rect->draw(display, window, gc);
+            void oTriangle::draw() {
+                this->triangle->draw();
+            }
+
+            std::vector<util::WindowRequest> oTriangle::update(float deltatime) {
+                return std::vector<util::WindowRequest>();
+            }
+
+            std::vector<util::WindowRequest> oTriangle::mouse_move(util::StateInfo updateinfo) {
+                return std::vector<util::WindowRequest>();
+            }
+
+            std::vector<util::WindowRequest> oTriangle::mouse_press(util::StateInfo updateinfo) {
+                return std::vector<util::WindowRequest>();
+            }
+
+            std::vector<util::WindowRequest> oTriangle::mouse_release(util::StateInfo updateinfo) {
+                return std::vector<util::WindowRequest>();
+            }
+
+            std::vector<util::WindowRequest> oTriangle::key_press(util::StateInfo updateinfo) {
+                return std::vector<util::WindowRequest>();
+            }
+
+            std::vector<util::WindowRequest> oTriangle::key_release(util::StateInfo updateinfo) {
+                return std::vector<util::WindowRequest>();
+            }
+
+            void oRectangle::draw() {
+                this->rect->draw();
             }
 
             std::vector<util::WindowRequest> oRectangle::update(float deltatime) {
@@ -46,8 +74,8 @@ namespace lgui {
                 return std::vector<util::WindowRequest>();
             }
 
-            void oPNG::draw(Display* display, Window& window, GC& gc) {
-                this->png->draw(display, window, gc);
+            void oPNG::draw() {
+                this->png->draw();
             }
 
             std::vector<util::WindowRequest> oPNG::update(float deltatime) {

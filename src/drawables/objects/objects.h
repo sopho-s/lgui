@@ -33,7 +33,7 @@ namespace lgui {
                  * @param window The window to draw on
                  * @param gc The graphics context to draw with
                  */
-                virtual void draw(Display* display, Window& window, GC& gc) = 0;
+                virtual void draw() = 0;
                 /**
                  * @brief Gives an animation to the object
                  * 
@@ -90,6 +90,44 @@ namespace lgui {
                 virtual std::vector<util::ClearArea> get_clear_areas() = 0;
             };
 
+            class oTriangle : public Object {
+            private:
+                util::Point p1, p2, p3;
+                util::Point prevp1, prevp2, prevp3;
+                util::OldColour colour;
+                bool filled;
+                lTriangle* triangle;
+                TriangleBound bound;
+                std::vector<animations::Animation*> animations;
+            public:
+                oTriangle() {}
+                oTriangle(util::Point p1, util::Point p2, util::Point p3, util::OldColour colour, bool filled = true) {
+                    this->p1 = p1;
+                    this->p2 = p2;
+                    this->p3 = p3;
+                    this->colour = colour;
+                    this->filled = filled;
+                    this->triangle = new lTriangle(p1, p2, p3, colour, filled);
+                    this->bound = TriangleBound(p1, p2, p3);
+                }
+                void draw() override;
+                void give_animation(animations::Animation* animation) override {
+                    this->animations.push_back(animation);
+                }
+                virtual std::vector<util::WindowRequest> update(float deltatime);
+                virtual std::vector<util::WindowRequest> mouse_move(util::StateInfo updateinfo);
+                virtual std::vector<util::WindowRequest> mouse_press(util::StateInfo updateinfo);
+                virtual std::vector<util::WindowRequest> mouse_release(util::StateInfo updateinfo);
+                virtual std::vector<util::WindowRequest> key_press(util::StateInfo updateinfo);
+                virtual std::vector<util::WindowRequest> key_release(util::StateInfo updateinfo);
+                virtual std::vector<util::ClearArea> get_clear_areas() override {
+                    if (this->prevp1 != this->p1 || this->prevp2 != this->p2 || this->prevp3 != this->p3) {
+                        return this->triangle->get_clear_areas();
+                    }
+                    return std::vector<util::ClearArea>();
+                }
+            };
+
             /**
              * @brief A rectangle object
              * 
@@ -98,12 +136,28 @@ namespace lgui {
             private:
                 float x, y, width, height;
                 float prevx, prevy, prevwidth, prevheight;
-                util::Colour colour;
+                util::OldColour colour;
                 bool filled;
                 bool prevfilled;
                 lRectangle* rect;
                 RectangleBound bound;
                 std::vector<animations::Animation*> animations;
+                const char* vertexShaderSource = R"(
+                    #version 330 core
+                    layout (location = 0) in vec2 aPos;
+                    void main() {
+                        gl_Position = vec4(aPos, 0.0, 1.0);
+                    }
+                )";
+                const char* fragmentShaderSource = R"(
+                    #version 330 core
+                    out vec4 FragColour;
+                    uniform vec4 rectColour;
+                    void main() {
+                        FragColour = rectColour;
+                    }
+                )";
+                unsigned int vertexShader, fragmentShader, shaderProgram;
             public:
                 /**
                  * @brief Construct a new Rectangle object
@@ -120,7 +174,7 @@ namespace lgui {
                  * @param colour The colour of the rectangle
                  * @param filled Whether the rectangle is filled or not
                  */
-                oRectangle(int x, int y, int width, int height, util::Colour colour, bool filled = true) {
+                oRectangle(int x, int y, int width, int height, util::OldColour colour, bool filled = true) {
                     this->x = (float)x;
                     this->y = (float)y;
                     this->width = width;
@@ -137,7 +191,7 @@ namespace lgui {
                  * @param window The window to draw on
                  * @param gc The graphics context to draw with
                  */
-                void draw(Display* display, Window& window, GC& gc) override;
+                void draw() override;
                 /**
                  * @brief Gives an animation to the object
                  * 
@@ -242,7 +296,7 @@ namespace lgui {
                  * @param window The window to draw on
                  * @param gc The graphics context to draw with
                  */
-                void draw(Display* display, Window& window, GC& gc) override;
+                void draw() override;
                 /**
                  * @brief Gives an animation to the object
                  * 
