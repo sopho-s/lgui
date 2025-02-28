@@ -136,6 +136,11 @@ namespace lgui {
                 auto end = std::chrono::high_resolution_clock::now();
                 elapsed = end - start;
                 deltatime = elapsed.count() / 1000000000.0;
+                glfwGetFramebufferSize(this->glwindow, &width, &height);
+                for (auto const& pair : this->objects) {
+                    pair.second->update_viewport(this->x, this->y, this->width, this->height);
+                    pair.second->update(deltatime);
+                }
                 for (auto const& pair : this->objects) {
                     std::vector<util::WindowRequest> requests = pair.second->update(deltatime);
                     for (util::WindowRequest request : requests) {
@@ -224,6 +229,11 @@ namespace lgui {
                     pair.second->draw();
                 }
                 this->flush();
+                if (glfwWindowShouldClose(this->glwindow)) {
+                    glfwDestroyWindow(this->glwindow);
+                    glfwTerminate();
+                    break;
+                }
             }
         }
 

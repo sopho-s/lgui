@@ -28,6 +28,7 @@ namespace lgui {
                  */
                 virtual void draw() = 0;
                 virtual std::vector<util::ClearArea> get_clear_areas() = 0;
+                virtual void update_viewport(int x, int y, int width, int height) = 0;
         };
 
         class lTriangle : public lDrawable {
@@ -84,35 +85,67 @@ namespace lgui {
                 std::vector<util::ClearArea> get_clear_areas() override {
                     return std::vector<util::ClearArea> {util::ClearArea(p1.x, p1.y, p2.x, p2.y), util::ClearArea(p2.x, p2.y, p3.x, p3.y), util::ClearArea(p3.x, p3.y, p1.x, p1.y)};
                 }
+
+                void update_viewport(int x, int y, int width, int height) override {
+                    p1.Update(width, height);
+                    p2.Update(width, height);
+                    p3.Update(width, height);
+                }
         };
 
         /**
          * @brief A rectangle drawable object
          * 
          */
-        class lRectangle : public lDrawable {
+        class lQuad : public lDrawable {
             public:
-                unsigned int x, y, width, height;
+                util::Point p1, p2, p3, p4;
                 util::OldColour colour;
+                const char* vertexShaderSource = "#version 330 core\n"
+                "layout (location = 0) in vec2 aPos;\n"
+                "void main() {\n"
+                "    gl_Position = vec4(aPos.x, aPos.y, 0.0, 1.0);\n"
+                "}\0";
+                const char* fragmentShaderSource = "#version 330 core\n"
+                "out vec4 FragColour;\n"
+                "uniform vec4 triColour;\n"
+                "void main() {\n"
+                "    FragColour = triColour;\n"
+                "}\0";
+                unsigned int shaderProgram;
+                float vertices1[6] = {
+                    0.0f, 0.0f,
+                    0.0f, 0.0f,
+                    0.0f, 0.0f
+                };
+                float vertices2[6] = {
+                    0.0f, 0.0f,
+                    0.0f, 0.0f,
+                    0.0f, 0.0f
+                };
+                unsigned int VBO, VAO;
+                unsigned int VBO2, VAO2;
                 bool filled;
                 /**
-                 * @brief Construct a new l Rectangle object
+                 * @brief Construct a new l Quad object
                  * 
-                 * @param x The x position of the rectangle
-                 * @param y The y position of the rectangle
-                 * @param width The width of the rectangle
-                 * @param height The height of the rectangle
-                 * @param colour The colour of the rectangle
-                 * @param filled Whether the rectangle is filled or not
+                 * @param p1 The first point of the quad
+                 * @param p2 The second point of the quad
+                 * @param p3 The third point of the quad
+                 * @param p4 The fourth point of the quad
+                 * @param colour The colour of the quad
+                 * @param filled Whether the quad is filled or not
                  */
-                lRectangle(int x, int y, int width, int height, util::OldColour colour, bool filled = true) {
-                    this->x = x;
-                    this->y = y;
-                    this->width = width;
-                    this->height = height;
+                lQuad(util::Point p1, util::Point p2, util::Point p3, util::Point p4, util::OldColour colour, bool filled = true) {
+                    this->p1 = p1;
+                    this->p2 = p2;
+                    this->p3 = p3;
+                    this->p4 = p4;
                     this->colour = colour;
                     this->filled = filled;
+                    init();
                 }
+                void init();
                 /**
                  * @brief Draws the rectangle on the window
                  * 
@@ -122,7 +155,14 @@ namespace lgui {
                  */
                 void draw() override;
                 std::vector<util::ClearArea> get_clear_areas() override {
-                    return std::vector<util::ClearArea> {util::ClearArea(x, y, width, height)};
+                    return std::vector<util::ClearArea> {util::ClearArea()};
+                }
+
+                void update_viewport(int x, int y, int width, int height) override {
+                    p1.Update(width, height);
+                    p2.Update(width, height);
+                    p3.Update(width, height);
+                    p4.Update(width, height);
                 }
         };
 
@@ -166,6 +206,11 @@ namespace lgui {
                  */
                 std::vector<util::ClearArea> get_clear_areas() override {
                     return std::vector<util::ClearArea> {util::ClearArea(x - radius, y - radius, radius * 2, radius * 2)};
+                }
+                void update_viewport(int x, int y, int width, int height) override {
+                    this->x = (int)((float)x * (float)width);
+                    this->y = (int)((float)y * (float)height);
+                    this->radius = (int)((float)radius * (float)width);
                 }
         };
 
@@ -213,6 +258,10 @@ namespace lgui {
                  */
                 std::vector<util::ClearArea> get_clear_areas() override {
                     return std::vector<util::ClearArea> {util::ClearArea(x, y, text.length() * 10, 10)};
+                }
+                void update_viewport(int x, int y, int width, int height) override {
+                    this->x = (int)((float)x * (float)width);
+                    this->y = (int)((float)y * (float)height);
                 }
         };
         
@@ -289,6 +338,12 @@ namespace lgui {
                  */
                 std::vector<util::ClearArea> get_clear_areas() override {
                     return std::vector<util::ClearArea> {util::ClearArea(0, 0, 1, 1)};
+                }
+                void update_viewport(int x, int y, int width, int height) override {
+                    this->x = (int)((float)x * (float)width);
+                    this->y = (int)((float)y * (float)height);
+                    this->width = (int)((float)true_width * (float)width);
+                    this->height = (int)((float)true_height * (float)height);
                 }
         };
     }

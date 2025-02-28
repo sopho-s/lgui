@@ -1,4 +1,6 @@
 #include <string>
+#include <math.h>
+
 #pragma once
 
 #define UPDATESIZE 1 << 0
@@ -54,6 +56,50 @@ namespace lgui {
                 this->g = g;
                 this->b = b;
                 this->a = a;
+            }
+        };
+
+        struct Point {
+            float x, y;
+            float xtrue, ytrue;
+            Point() {
+                this->x = 0;
+                this->y = 0;
+                this->xtrue = 0;
+                this->ytrue = 0;
+            }
+            Point(float x, float y) {
+                this->xtrue = x;
+                this->ytrue = y;
+                this->x = 0;
+                this->y = 0;
+            }
+            bool operator==(const Point& other) const {
+                return this->x == other.x && this->y == other.y;
+            }
+
+            bool operator!=(const Point& other) const {
+                return this->x != other.x || this->y != other.y;
+            }
+
+            Point operator+(const Point& other) const {
+                return Point(this->x + other.x, this->y + other.y);
+            }
+
+            Point operator-(const Point& other) const {
+                return Point(this->x - other.x, this->y - other.y);
+            }
+
+            void Update(float width, float height) {
+                this->x = this->xtrue / width * 2 - 1;
+                this->y = this->ytrue / height * 2 - 1;
+            }
+
+            void Rotate(float angle) {
+                float x = this->x;
+                float y = this->y;
+                this->x = x * cos(angle) - y * sin(angle);
+                this->y = x * sin(angle) + y * cos(angle);
             }
         };
 
@@ -122,14 +168,13 @@ namespace lgui {
          */
         struct ObjectRequest {
             int type;
-            float x, y;
+            Point position;
             float rotation;
             int width, height;
             OldColour colour;
             ObjectRequest() {
                 this->type = NOCHANGE;
-                this->x = 0;
-                this->y = 0;
+                this->position = Point(0, 0);
                 this->rotation = 0;
                 this->width = 0;
                 this->height = 0;
@@ -137,8 +182,7 @@ namespace lgui {
             }
             ObjectRequest(int type) {
                 this->type = type;
-                this->x = 0;
-                this->y = 0;
+                this->position = Point(0, 0);
                 this->rotation = 0;
                 this->width = 0;
                 this->height = 0;
@@ -178,33 +222,6 @@ namespace lgui {
                 this->x = x;
                 this->y = y;
                 this->rotation = rotation;
-            }
-        };
-
-        struct Point {
-            float x, y;
-            Point() {
-                this->x = 0;
-                this->y = 0;
-            }
-            Point(float x, float y) {
-                this->x = x;
-                this->y = y;
-            }
-            bool operator==(const Point& other) const {
-                return this->x == other.x && this->y == other.y;
-            }
-
-            bool operator!=(const Point& other) const {
-                return this->x != other.x || this->y != other.y;
-            }
-
-            Point operator+(const Point& other) const {
-                return Point(this->x + other.x, this->y + other.y);
-            }
-
-            Point operator-(const Point& other) const {
-                return Point(this->x - other.x, this->y - other.y);
             }
         };
     }

@@ -8,6 +8,36 @@ namespace lgui {
             }
 
             std::vector<util::WindowRequest> oTriangle::update(float deltatime) {
+                this->prevp1 = this->p1;
+                this->prevp2 = this->p2;
+                this->prevp3 = this->p3;
+                this->prevfilled = this->filled;
+                for (animations::Animation* animation : this->animations) {
+                    util::ObjectRequest request = animation->update(deltatime);
+                    if (request.type & UPDATEPOSITION) {
+                        util::Point p1diff = this->prevp1 - this->center;
+                        util::Point p2diff = this->prevp2 - this->center;
+                        util::Point p3diff = this->prevp3 - this->center;
+                        this->center = request.position;
+                        this->p1 = this->center + p1diff;
+                        this->p2 = this->center + p2diff;
+                        this->p3 = this->center + p3diff;
+                        this->bound.set_position(request.position.x, request.position.y);
+                    } else if (request.type & UPDATEROTATION) {
+                        util::Point p1diff = this->prevp1 - this->center;
+                        util::Point p2diff = this->prevp2 - this->center;
+                        util::Point p3diff = this->prevp3 - this->center;
+                        p1diff.Rotate(request.rotation);
+                        p2diff.Rotate(request.rotation);
+                        p3diff.Rotate(request.rotation);
+                        this->p1 = this->center + p1diff;
+                        this->p2 = this->center + p2diff;
+                        this->p3 = this->center + p3diff;
+                    }
+                }
+                this->triangle->p1 = this->p1;
+                this->triangle->p2 = this->p2;
+                this->triangle->p3 = this->p3;
                 return std::vector<util::WindowRequest>();
             }
 
@@ -31,46 +61,41 @@ namespace lgui {
                 return std::vector<util::WindowRequest>();
             }
 
-            void oRectangle::draw() {
+            void oQuad::draw() {
                 this->rect->draw();
             }
 
-            std::vector<util::WindowRequest> oRectangle::update(float deltatime) {
-                this->prevx = this->x;
-                this->prevy = this->y;
-                this->prevwidth = this->width;
-                this->prevheight = this->height;
+            std::vector<util::WindowRequest> oQuad::update(float deltatime) {
+                this->prevp1 = this->p1;
+                this->prevp2 = this->p2;
+                this->prevp3 = this->p3;
+                this->prevp4 = this->p4;
                 this->prevfilled = this->filled;
                 for (animations::Animation* animation : this->animations) {
                     util::ObjectRequest request = animation->update(deltatime);
                     if (request.type & UPDATEPOSITION) {
-                        this->rect->x = request.x;
-                        this->x = request.x;
-                        this->rect->y = request.y;
-                        this->y = request.y;
-                        this->bound.set_position(request.x, request.y);
                     }
                 }
                 return std::vector<util::WindowRequest>();
             }
 
-            std::vector<util::WindowRequest> oRectangle::mouse_move(util::StateInfo updateinfo) {
+            std::vector<util::WindowRequest> oQuad::mouse_move(util::StateInfo updateinfo) {
                 return std::vector<util::WindowRequest>();
             }
 
-            std::vector<util::WindowRequest> oRectangle::mouse_press(util::StateInfo updateinfo) {
+            std::vector<util::WindowRequest> oQuad::mouse_press(util::StateInfo updateinfo) {
                 return std::vector<util::WindowRequest>();
             }
 
-            std::vector<util::WindowRequest> oRectangle::mouse_release(util::StateInfo updateinfo) {
+            std::vector<util::WindowRequest> oQuad::mouse_release(util::StateInfo updateinfo) {
                 return std::vector<util::WindowRequest>();
             }
 
-            std::vector<util::WindowRequest> oRectangle::key_press(util::StateInfo updateinfo) {
+            std::vector<util::WindowRequest> oQuad::key_press(util::StateInfo updateinfo) {
                 return std::vector<util::WindowRequest>();
             }
 
-            std::vector<util::WindowRequest> oRectangle::key_release(util::StateInfo updateinfo) {
+            std::vector<util::WindowRequest> oQuad::key_release(util::StateInfo updateinfo) {
                 return std::vector<util::WindowRequest>();
             }
 
@@ -86,11 +111,6 @@ namespace lgui {
                 for (animations::Animation* animation : this->animations) {
                     util::ObjectRequest request = animation->update(deltatime);
                     if (request.type & UPDATEPOSITION) {
-                        this->png->x = request.x;
-                        this->x = request.x;
-                        this->png->y = request.y;
-                        this->y = request.y;
-                        this->bound.set_position(request.x, request.y);
                     }
                 }
                 return std::vector<util::WindowRequest>();
