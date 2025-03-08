@@ -57,17 +57,11 @@ namespace lgui {
             this->vertices[4] = p3.x;
             this->vertices[5] = p3.y;
             glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-            float red = (sin(timetest * 0.3) * 0.5f) + 0.5f;  // Vary red over time
-            float green = (cos(timetest * 0.5) * 0.5f) + 0.5f; // Vary green over time
-            float blue = (sin(timetest) * 0.7) + 0.5f; // Vary green over time
-            timetest += 0.1f;
             glUseProgram(shaderProgram);
             glBindVertexArray(VAO);
             int colorLocation = glGetUniformLocation(shaderProgram, "triColour");
-            glUniform4f(colorLocation, red, green, blue, 1.0f);
+            glUniform4f(colorLocation, this->colour.r, this->colour.g, this->colour.b, this->colour.a);
             glDrawArrays(GL_TRIANGLES, 0, 3);
-
-            //printf("Drawing triangle\n");
         }
 
         void lQuad::init() {
@@ -142,13 +136,15 @@ namespace lgui {
             this->vertices2[4] = p1.x;
             this->vertices2[5] = p1.y;
             glBufferData(GL_ARRAY_BUFFER, sizeof(vertices1), vertices1, GL_STATIC_DRAW);
-            glBufferData(GL_ARRAY_BUFFER, sizeof(vertices2), vertices2, GL_STATIC_DRAW);
             glUseProgram(shaderProgram);
             glBindVertexArray(VAO);
             int colorLocation = glGetUniformLocation(shaderProgram, "triColour");
             glUniform4f(colorLocation, 1, 1, 0, 1.0f);
+            glBindBuffer(GL_ARRAY_BUFFER, VBO);
             glDrawArrays(GL_TRIANGLES, 0, 3);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(vertices2), vertices2, GL_STATIC_DRAW);
             glBindVertexArray(VAO2);
+            glBindBuffer(GL_ARRAY_BUFFER, VBO2);
             glDrawArrays(GL_TRIANGLES, 0, 3);
         }
 

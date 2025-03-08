@@ -76,8 +76,7 @@ namespace lgui {
                         }
                         util::ObjectRequest request;
                         request.type = UPDATEPOSITION;
-                        request.position.x = this->x;
-                        request.position.y = this->y;
+                        request.position = util::Point(this->x, this->y);
                         return request;
                     }
                 };
@@ -100,10 +99,17 @@ namespace lgui {
                         util::ObjectRequest update(float deltatime) override {
                             util::ObjectRequest request;
                             request.type = UPDATEROTATION;
-                            request.rotation = this->speed * deltatime / 180 * M_PI;
+                            request.rotation = this->speed * deltatime / 180 * M_PI * abs(this->angle) / this->angle;
+                            if (abs(angle) <= 0.000001) {
+                                angle = 0;
+                                request.rotation = 0;
+                            } else if (abs(angle) / 180 * M_PI < request.rotation) {
+                                request.rotation = angle / 180 * M_PI;
+                            }
+                            angle -= request.rotation * 180 / M_PI;
                             return request;
                         }
-            };
+                };
             }
         }
     }

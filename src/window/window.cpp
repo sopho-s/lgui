@@ -2,6 +2,9 @@
 #include "window.h"
 
 
+int global_width = 0;
+int global_height = 0;
+
 void GLAPIENTRY openglDebugCallback(GLenum source, GLenum type, GLuint id,
     GLenum severity, GLsizei length,
     const GLchar* message, const void* userParam) {
@@ -23,6 +26,8 @@ void GLAPIENTRY openglDebugCallback(GLenum source, GLenum type, GLuint id,
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+    global_width = width;
+    global_height = height;
     glViewport(0, 0, width, height);
 }
 
@@ -35,7 +40,9 @@ namespace lgui {
                 fprintf(stderr, "Failed to initialize GLAD\n");
             }
             glfwSetFramebufferSizeCallback(this->glwindow, framebuffer_size_callback);
-            glViewport(0, 0, 800, 600);
+            global_width = this->width;
+            global_height = this->height;
+            glViewport(0, 0, this->width, this->height);
             glClearColor(this->background_colour.r, this->background_colour.g, this->background_colour.b, this->background_colour.a);
             glClear(GL_COLOR_BUFFER_BIT);
             this->shown = true;
@@ -72,13 +79,11 @@ namespace lgui {
         void lWindow::flush() {
             glfwPollEvents();
             glfwSwapBuffers(this->glwindow);
-            printf("Flushing window\n");
         }
 
         void lWindow::clear() {
             // Clear window
             glClear(GL_COLOR_BUFFER_BIT);
-            printf("Clearing window\n");
         }
 
         void lWindow::clear(std::vector<util::ClearArea> clearareas) {
@@ -138,7 +143,7 @@ namespace lgui {
                 deltatime = elapsed.count() / 1000000000.0;
                 glfwGetFramebufferSize(this->glwindow, &width, &height);
                 for (auto const& pair : this->objects) {
-                    pair.second->update_viewport(this->x, this->y, this->width, this->height);
+                    pair.second->update_viewport(this->x, this->y);
                     pair.second->update(deltatime);
                 }
                 for (auto const& pair : this->objects) {

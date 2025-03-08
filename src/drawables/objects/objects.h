@@ -5,6 +5,7 @@
 #include <X11/Xlib.h>
 #include <cstdio>
 #include <vector>
+#include <iostream>
 #pragma once
 
 namespace lgui {
@@ -89,7 +90,7 @@ namespace lgui {
                  */
                 virtual std::vector<util::ClearArea> get_clear_areas() = 0;
 
-                virtual void update_viewport(int x, int y, int width, int height) = 0;
+                virtual void update_viewport(int x, int y) = 0;
             };
 
             class oTriangle : public Object {
@@ -97,7 +98,7 @@ namespace lgui {
                 util::Point center;
                 util::Point p1, p2, p3;
                 util::Point prevp1, prevp2, prevp3;
-                util::OldColour colour;
+                util::Colour colour;
                 bool filled;
                 bool prevfilled;
                 lTriangle* triangle;
@@ -105,7 +106,7 @@ namespace lgui {
                 std::vector<animations::Animation*> animations;
             public:
                 oTriangle() {}
-                oTriangle(util::Point center, util::Point p1, util::Point p2, util::Point p3, util::OldColour colour, bool filled = true) {
+                oTriangle(util::Point center, util::Point p1, util::Point p2, util::Point p3, util::Colour colour, bool filled = true) {
                     this->center = center;
                     this->p1 = p1;
                     this->p2 = p2;
@@ -132,11 +133,11 @@ namespace lgui {
                     }
                     return std::vector<util::ClearArea>();
                 }
-                virtual void update_viewport(int x, int y, int width, int height) {
-                    this->triangle->update_viewport(x, y, width, height);
-                    p1.Update(width, height);
-                    p2.Update(width, height);
-                    p3.Update(width, height);
+                virtual void update_viewport(int x, int y) {
+                    this->triangle->update_viewport(x, y);
+                    p1.Update();
+                    p2.Update();
+                    p3.Update();
                 }
             };
 
@@ -145,10 +146,10 @@ namespace lgui {
              * 
              */
             class oQuad : public Object {
-            private:
+            protected:
                 util::Point p1, p2, p3, p4;
                 util::Point prevp1, prevp2, prevp3, prevp4;
-                util::OldColour colour;
+                util::Colour colour;
                 bool filled;
                 bool prevfilled;
                 lQuad* rect;
@@ -170,7 +171,7 @@ namespace lgui {
                  * @param colour The colour of the rectangle
                  * @param filled Whether the rectangle is filled or not
                  */
-                oQuad(util::Point p1, util::Point p2, util::Point p3, util::Point p4, util::OldColour colour, bool filled = true) {
+                oQuad(util::Point p1, util::Point p2, util::Point p3, util::Point p4, util::Colour colour, bool filled = true) {
                     this->p1 = p1;
                     this->p2 = p2;
                     this->p3 = p3;
@@ -246,12 +247,48 @@ namespace lgui {
                 virtual std::vector<util::ClearArea> get_clear_areas() override {
                     return std::vector<util::ClearArea>();
                 }
-                virtual void update_viewport(int x, int y, int width, int height) {
-                    this->rect->update_viewport(x, y, width, height);
-                    p1.Update(width, height);
-                    p2.Update(width, height);
-                    p3.Update(width, height);
-                    p4.Update(width, height);
+                virtual void update_viewport(int x, int y) {
+                    this->rect->update_viewport(x, y);
+                    p1.Update();
+                    p2.Update();
+                    p3.Update();
+                    p4.Update();
+                }
+            };
+
+            class oRectangle : public oQuad {
+            private:
+                float width, height;
+            public:
+                oRectangle() {}
+                oRectangle(util::Point origin, float width, float height, util::Colour colour, bool filled = true) {
+                    this->p1 = origin;
+                    this->p2 = util::Point(origin.x + width, origin.y);
+                    this->p3 = util::Point(origin.x + width, origin.y + height);
+                    this->p4 = util::Point(origin.x, origin.y + height);
+                    this->width = width;
+                    this->height = height;
+                    this->colour = colour;
+                    this->filled = filled;
+                    this->rect = new lQuad(this->p1, this->p2, this->p3, this->p4, colour, filled);
+                    this->bound = RectangleBound();
+                }
+                void draw() override;
+                std::vector<util::WindowRequest> update(float deltatime) override;
+                std::vector<util::WindowRequest> mouse_move(util::StateInfo updateinfo) override;
+                std::vector<util::WindowRequest> mouse_press(util::StateInfo updateinfo) override;
+                std::vector<util::WindowRequest> mouse_release(util::StateInfo updateinfo) override;
+                std::vector<util::WindowRequest> key_press(util::StateInfo updateinfo) override;
+                std::vector<util::WindowRequest> key_release(util::StateInfo updateinfo) override;
+                std::vector<util::ClearArea> get_clear_areas() override {
+                    return std::vector<util::ClearArea> {util::ClearArea()};
+                }
+                void update_viewport(int x, int y) override {
+                    this->rect->update_viewport(x, y);
+                    p1.Update();
+                    p2.Update();
+                    p3.Update();
+                    p4.Update();
                 }
             };
 
@@ -358,8 +395,8 @@ namespace lgui {
                     }
                     return std::vector<util::ClearArea>();
                 }   
-                virtual void update_viewport(int x, int y, int width, int height) {
-                    this->png->update_viewport(x, y, width, height);
+                virtual void update_viewport(int x, int y) {
+                    this->png->update_viewport(x, y);
                     this->x = (float)x;
                     this->y = (float)y;
                     this->width = width;

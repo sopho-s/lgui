@@ -5,6 +5,7 @@
 #include <png.h>
 #include <fstream>
 #include <vector>
+#include <iostream>
 #define GLFW_INCLUDE_NONE
 #include "glad/glad.h"
 #include <GLFW/glfw3.h>
@@ -28,14 +29,13 @@ namespace lgui {
                  */
                 virtual void draw() = 0;
                 virtual std::vector<util::ClearArea> get_clear_areas() = 0;
-                virtual void update_viewport(int x, int y, int width, int height) = 0;
+                virtual void update_viewport(int x, int y) = 0;
         };
 
         class lTriangle : public lDrawable {
             public:
                 util::Point p1, p2, p3;
-                util::OldColour colour;
-                float timetest = 0;
+                util::Colour colour;
                 bool filled;
                 const char* vertexShaderSource = "#version 330 core\n"
                 "layout (location = 0) in vec2 aPos;\n"
@@ -64,7 +64,7 @@ namespace lgui {
                  * @param colour The colour of the triangle
                  * @param filled Whether the triangle is filled or not
                  */
-                lTriangle(util::Point p1, util::Point p2, util::Point p3, util::OldColour colour, bool filled = true) {
+                lTriangle(util::Point p1, util::Point p2, util::Point p3, util::Colour colour, bool filled = true) {
                     this->p1 = p1;
                     this->p2 = p2;
                     this->p3 = p3;
@@ -86,10 +86,10 @@ namespace lgui {
                     return std::vector<util::ClearArea> {util::ClearArea(p1.x, p1.y, p2.x, p2.y), util::ClearArea(p2.x, p2.y, p3.x, p3.y), util::ClearArea(p3.x, p3.y, p1.x, p1.y)};
                 }
 
-                void update_viewport(int x, int y, int width, int height) override {
-                    p1.Update(width, height);
-                    p2.Update(width, height);
-                    p3.Update(width, height);
+                void update_viewport(int x, int y) override {
+                    p1.Update();
+                    p2.Update();
+                    p3.Update();
                 }
         };
 
@@ -100,7 +100,7 @@ namespace lgui {
         class lQuad : public lDrawable {
             public:
                 util::Point p1, p2, p3, p4;
-                util::OldColour colour;
+                util::Colour colour;
                 const char* vertexShaderSource = "#version 330 core\n"
                 "layout (location = 0) in vec2 aPos;\n"
                 "void main() {\n"
@@ -136,7 +136,7 @@ namespace lgui {
                  * @param colour The colour of the quad
                  * @param filled Whether the quad is filled or not
                  */
-                lQuad(util::Point p1, util::Point p2, util::Point p3, util::Point p4, util::OldColour colour, bool filled = true) {
+                lQuad(util::Point p1, util::Point p2, util::Point p3, util::Point p4, util::Colour colour, bool filled = true) {
                     this->p1 = p1;
                     this->p2 = p2;
                     this->p3 = p3;
@@ -158,11 +158,11 @@ namespace lgui {
                     return std::vector<util::ClearArea> {util::ClearArea()};
                 }
 
-                void update_viewport(int x, int y, int width, int height) override {
-                    p1.Update(width, height);
-                    p2.Update(width, height);
-                    p3.Update(width, height);
-                    p4.Update(width, height);
+                void update_viewport(int x, int y) override {
+                    p1.Update();
+                    p2.Update();
+                    p3.Update();
+                    p4.Update();
                 }
         };
 
@@ -207,10 +207,7 @@ namespace lgui {
                 std::vector<util::ClearArea> get_clear_areas() override {
                     return std::vector<util::ClearArea> {util::ClearArea(x - radius, y - radius, radius * 2, radius * 2)};
                 }
-                void update_viewport(int x, int y, int width, int height) override {
-                    this->x = (int)((float)x * (float)width);
-                    this->y = (int)((float)y * (float)height);
-                    this->radius = (int)((float)radius * (float)width);
+                void update_viewport(int x, int y) override {
                 }
         };
 
@@ -259,9 +256,7 @@ namespace lgui {
                 std::vector<util::ClearArea> get_clear_areas() override {
                     return std::vector<util::ClearArea> {util::ClearArea(x, y, text.length() * 10, 10)};
                 }
-                void update_viewport(int x, int y, int width, int height) override {
-                    this->x = (int)((float)x * (float)width);
-                    this->y = (int)((float)y * (float)height);
+                void update_viewport(int x, int y) override {
                 }
         };
         
@@ -339,11 +334,7 @@ namespace lgui {
                 std::vector<util::ClearArea> get_clear_areas() override {
                     return std::vector<util::ClearArea> {util::ClearArea(0, 0, 1, 1)};
                 }
-                void update_viewport(int x, int y, int width, int height) override {
-                    this->x = (int)((float)x * (float)width);
-                    this->y = (int)((float)y * (float)height);
-                    this->width = (int)((float)true_width * (float)width);
-                    this->height = (int)((float)true_height * (float)height);
+                void update_viewport(int x, int y) override {
                 }
         };
     }

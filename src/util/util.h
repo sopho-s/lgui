@@ -1,5 +1,6 @@
 #include <string>
 #include <math.h>
+#include <iostream>
 
 #pragma once
 
@@ -19,6 +20,9 @@
 #define UPDATEROTATION 1 << 2
 #define UPDATECOLOUR 1 << 3
 #define ALLCHANGES UPDATESIZE | UPDATEPOSITION | UPDATEROTATION | UPDATECOLOUR
+
+extern int global_width;
+extern int global_height;
 
 namespace lgui {
     namespace util {
@@ -71,8 +75,9 @@ namespace lgui {
             Point(float x, float y) {
                 this->xtrue = x;
                 this->ytrue = y;
-                this->x = 0;
-                this->y = 0;
+                this->x = x / global_width * 2 - 1;
+                this->y = y / global_height * 2 - 1;
+                this->y = -this->y;
             }
             bool operator==(const Point& other) const {
                 return this->x == other.x && this->y == other.y;
@@ -83,23 +88,25 @@ namespace lgui {
             }
 
             Point operator+(const Point& other) const {
-                return Point(this->x + other.x, this->y + other.y);
+                return Point(this->xtrue + other.xtrue, this->ytrue + other.ytrue);
             }
 
             Point operator-(const Point& other) const {
-                return Point(this->x - other.x, this->y - other.y);
+                return Point(this->xtrue - other.xtrue, this->ytrue - other.ytrue);
             }
 
-            void Update(float width, float height) {
-                this->x = this->xtrue / width * 2 - 1;
-                this->y = this->ytrue / height * 2 - 1;
+            void Update() {
+                this->x = this->xtrue / global_width * 2 - 1;
+                this->y = this->ytrue / global_height * 2 - 1;
+                this->y = -this->y;
             }
 
             void Rotate(float angle) {
-                float x = this->x;
-                float y = this->y;
-                this->x = x * cos(angle) - y * sin(angle);
-                this->y = x * sin(angle) + y * cos(angle);
+                float ytrue = this->ytrue;
+                float xtrue = this->xtrue;
+                this->xtrue = xtrue * cos(angle) - ytrue * sin(angle);
+                this->ytrue = xtrue * sin(angle) + ytrue * cos(angle);
+                this->Update();
             }
         };
 

@@ -1,3 +1,4 @@
+#pragma once
 namespace lgui {
     namespace drawables {
         namespace objects {
