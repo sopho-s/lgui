@@ -1,4 +1,7 @@
 #include <string>
+#include <math.h>
+#include <iostream>
+
 #pragma once
 
 #define UPDATESIZE 1 << 0
@@ -18,6 +21,9 @@
 #define UPDATECOLOUR 1 << 3
 #define ALLCHANGES UPDATESIZE | UPDATEPOSITION | UPDATEROTATION | UPDATECOLOUR
 
+extern int global_width;
+extern int global_height;
+
 namespace lgui {
     namespace util {
 
@@ -25,19 +31,82 @@ namespace lgui {
          * @brief Colour is a struct that is used to store colour information
          * 
          */
-        struct Colour {
+        struct OldColour {
             unsigned short r, g, b, a;
+            OldColour() {
+                this->r = 0;
+                this->g = 0;
+                this->b = 0;
+                this->a = 0;
+            }
+            OldColour(int r, int g, int b, int a) {
+                this->r = (r * 65535) / 255;
+                this->g = (g * 65535) / 255;
+                this->b = (b * 65535) / 255;
+                this->a = (a * 65535) / 255;
+            }
+        };
+
+        struct Colour {
+            float r, g, b, a;
             Colour() {
                 this->r = 0;
                 this->g = 0;
                 this->b = 0;
                 this->a = 0;
             }
-            Colour(int r, int g, int b, int a) {
-                this->r = (r * 65535) / 255;
-                this->g = (g * 65535) / 255;
-                this->b = (b * 65535) / 255;
-                this->a = (a * 65535) / 255;
+            Colour(float r, float g, float b, float a) {
+                this->r = r;
+                this->g = g;
+                this->b = b;
+                this->a = a;
+            }
+        };
+
+        struct Point {
+            float x, y;
+            float xtrue, ytrue;
+            Point() {
+                this->x = 0;
+                this->y = 0;
+                this->xtrue = 0;
+                this->ytrue = 0;
+            }
+            Point(float x, float y) {
+                this->xtrue = x;
+                this->ytrue = y;
+                this->x = x / global_width * 2 - 1;
+                this->y = y / global_height * 2 - 1;
+                this->y = -this->y;
+            }
+            bool operator==(const Point& other) const {
+                return this->x == other.x && this->y == other.y;
+            }
+
+            bool operator!=(const Point& other) const {
+                return this->x != other.x || this->y != other.y;
+            }
+
+            Point operator+(const Point& other) const {
+                return Point(this->xtrue + other.xtrue, this->ytrue + other.ytrue);
+            }
+
+            Point operator-(const Point& other) const {
+                return Point(this->xtrue - other.xtrue, this->ytrue - other.ytrue);
+            }
+
+            void Update() {
+                this->x = this->xtrue / global_width * 2 - 1;
+                this->y = this->ytrue / global_height * 2 - 1;
+                this->y = -this->y;
+            }
+
+            void Rotate(float angle) {
+                float ytrue = this->ytrue;
+                float xtrue = this->xtrue;
+                this->xtrue = xtrue * cos(angle) - ytrue * sin(angle);
+                this->ytrue = xtrue * sin(angle) + ytrue * cos(angle);
+                this->Update();
             }
         };
 
@@ -79,7 +148,7 @@ namespace lgui {
             int x, y;
             int width, height;
             std::string title;
-            Colour background_colour;
+            OldColour background_colour;
             WindowRequest() {
                 this->type = NOTYPE;
                 this->x = 0;
@@ -87,9 +156,9 @@ namespace lgui {
                 this->width = 0;
                 this->height = 0;
                 this->title = "";
-                this->background_colour = Colour(0, 0, 0, 0);
+                this->background_colour = OldColour(0, 0, 0, 0);
             }
-            WindowRequest(int type, int x, int y, int width, int height, std::string title, Colour background_colour) {
+            WindowRequest(int type, int x, int y, int width, int height, std::string title, OldColour background_colour) {
                 this->type = type;
                 this->x = x;
                 this->y = y;
@@ -106,27 +175,25 @@ namespace lgui {
          */
         struct ObjectRequest {
             int type;
-            float x, y;
+            Point position;
             float rotation;
             int width, height;
-            Colour colour;
+            OldColour colour;
             ObjectRequest() {
                 this->type = NOCHANGE;
-                this->x = 0;
-                this->y = 0;
+                this->position = Point(0, 0);
                 this->rotation = 0;
                 this->width = 0;
                 this->height = 0;
-                this->colour = Colour(0, 0, 0, 0);
+                this->colour = OldColour(0, 0, 0, 0);
             }
             ObjectRequest(int type) {
                 this->type = type;
-                this->x = 0;
-                this->y = 0;
+                this->position = Point(0, 0);
                 this->rotation = 0;
                 this->width = 0;
                 this->height = 0;
-                this->colour = Colour(0, 0, 0, 0);
+                this->colour = OldColour(0, 0, 0, 0);
             }
         };
 
@@ -147,6 +214,21 @@ namespace lgui {
                 this->y = y;
                 this->width = width;
                 this->height = height;
+            }
+        };
+
+        struct Transform {
+            float x, y;
+            float rotation;
+            Transform() {
+                this->x = 0;
+                this->y = 0;
+                this->rotation = 0;
+            }
+            Transform(float x, float y, float rotation) {
+                this->x = x;
+                this->y = y;
+                this->rotation = rotation;
             }
         };
     }

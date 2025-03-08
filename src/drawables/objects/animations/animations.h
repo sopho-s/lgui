@@ -76,10 +76,39 @@ namespace lgui {
                         }
                         util::ObjectRequest request;
                         request.type = UPDATEPOSITION;
-                        request.x = this->x;
-                        request.y = this->y;
+                        request.position = util::Point(this->x, this->y);
                         return request;
                     }
+                };
+
+                class Rotate : public Animation {
+                    private:
+                        float angle;
+                        float speed;
+                    public:
+                        Rotate(float angle, float speed) {
+                            this->angle = angle;
+                            this->speed = speed;
+                        }
+                        /**
+                         * @brief Updates the animation
+                         * 
+                         * @param deltatime The time since the last update
+                         * @return util::ObjectRequest The request to make to the object
+                         */
+                        util::ObjectRequest update(float deltatime) override {
+                            util::ObjectRequest request;
+                            request.type = UPDATEROTATION;
+                            request.rotation = this->speed * deltatime / 180 * M_PI * abs(this->angle) / this->angle;
+                            if (abs(angle) <= 0.000001) {
+                                angle = 0;
+                                request.rotation = 0;
+                            } else if (abs(angle) / 180 * M_PI < request.rotation) {
+                                request.rotation = angle / 180 * M_PI;
+                            }
+                            angle -= request.rotation * 180 / M_PI;
+                            return request;
+                        }
                 };
             }
         }

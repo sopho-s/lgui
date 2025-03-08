@@ -1,35 +1,68 @@
 #include <iostream>
 #include "window.h"
 
+
+int global_width = 0;
+int global_height = 0;
+
+void GLAPIENTRY openglDebugCallback(GLenum source, GLenum type, GLuint id,
+    GLenum severity, GLsizei length,
+    const GLchar* message, const void* userParam) {
+    std::cout << "OpenGL Debug Message (" << id << "): " << message << std::endl;
+
+    // Log additional info based on severity
+    switch (severity) {
+    case GL_DEBUG_SEVERITY_HIGH:         std::cerr << "Severity: HIGH\n"; break;
+    case GL_DEBUG_SEVERITY_MEDIUM:       std::cerr << "Severity: MEDIUM\n"; break;
+    case GL_DEBUG_SEVERITY_LOW:          std::cerr << "Severity: LOW\n"; break;
+    case GL_DEBUG_SEVERITY_NOTIFICATION: std::cout << "Severity: NOTIFICATION\n"; break;
+    }
+
+    // Breakpoint in debug mode for severe errors
+    if (severity == GL_DEBUG_SEVERITY_HIGH) {
+        std::cerr << "Critical error, breaking execution!\n";
+        __builtin_trap(); // For Visual Studio (use `__builtin_trap()` for GCC/Clang)
+    }
+}
+
+void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+    global_width = width;
+    global_height = height;
+    glViewport(0, 0, width, height);
+}
+
 namespace lgui {
     namespace window {
         void lWindow::show() {
-            // Show the window
-            this->window = XCreateSimpleWindow(this->display, DefaultRootWindow(this->display), this->x, this->y, this->width, this->height, this->border_width, this->white_colour, this->xbackground_colour.pixel);
-            if (this->title != "") {
-                XStoreName(this->display, this->window, this->title.c_str());
+            this->glwindow = glfwCreateWindow(this->width, this->height, this->title.c_str(), NULL, NULL);
+            glfwMakeContextCurrent(this->glwindow);
+            if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+                fprintf(stderr, "Failed to initialize GLAD\n");
             }
-            XSelectInput(this->display, window, StructureNotifyMask | ExposureMask | KeyPressMask | ButtonPressMask | ButtonReleaseMask | PointerMotionMask | Button1MotionMask | Button2MotionMask | Button3MotionMask | Button4MotionMask | Button5MotionMask | KeyReleaseMask | EnterWindowMask | LeaveWindowMask | FocusChangeMask | PropertyChangeMask | VisibilityChangeMask | ColormapChangeMask | OwnerGrabButtonMask | ResizeRedirectMask | SubstructureRedirectMask  | ButtonMotionMask | KeymapStateMask | ResizeRedirectMask);
-            XMapWindow(this->display, window);
-            this->graphics_context = XCreateGC(this->display, this->window, 0, NULL);
-            for(;;) {
-                XEvent e;
-                XNextEvent(this->display, &e);
-                if (e.type == MapNotify) {
-                    break;
-                }
-            }
-            XFlush(this->display);
+            glfwSetFramebufferSizeCallback(this->glwindow, framebuffer_size_callback);
+            global_width = this->width;
+            global_height = this->height;
+            glViewport(0, 0, this->width, this->height);
+            glClearColor(this->background_colour.r, this->background_colour.g, this->background_colour.b, this->background_colour.a);
+            glClear(GL_COLOR_BUFFER_BIT);
             this->shown = true;
+            glDisable(GL_CULL_FACE);
+
+
+
+            std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
+            std::cout << "OpenGL Vendor: " << glGetString(GL_VENDOR) << std::endl;
+            std::cout << "OpenGL Renderer: " << glGetString(GL_RENDERER) << std::endl;
+            std::cout << "GLSL Version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
         }
 
         void lWindow::hide() {
-            // Hide the window
-            XUnmapWindow(this->display, this->window);
-            XFlush(this->display);
-            this->window = Window();
-            this->graphics_context = GC();
+            glfwSetWindowShouldClose(this->glwindow, true);
             this->shown = false;
+        }
+
+        void lWindow::old_set_background_colour(const util::OldColour& colour) {
+            
         }
 
         void lWindow::set_background_colour(const util::Colour& colour) {
@@ -38,81 +71,53 @@ namespace lgui {
             this->background_colour.r = colour.r;
             this->background_colour.g = colour.g;
             this->background_colour.b = colour.b;
-            Colormap colourmap = DefaultColormap(this->display, DefaultScreen(this->display));
-            this->xbackground_colour.red = this->background_colour.r;
-            this->xbackground_colour.green = this->background_colour.g;
-            this->xbackground_colour.blue = this->background_colour.b;
-            this->xbackground_colour.flags = DoRed | DoGreen | DoBlue;
-            XAllocColor(this->display, colourmap, &this->xbackground_colour);
             if (this->shown) {
-                XSetWindowBackground(this->display, this->window, this->xbackground_colour.pixel);
+                glClearColor(this->background_colour.r, this->background_colour.g, this->background_colour.b, this->background_colour.a);
             }
         }
         
         void lWindow::flush() {
-            // Refresh window
-            XFlush(this->display);
+            glfwPollEvents();
+            glfwSwapBuffers(this->glwindow);
         }
 
         void lWindow::clear() {
             // Clear window
-            XClearWindow(this->display, this->window);
+            glClear(GL_COLOR_BUFFER_BIT);
         }
 
         void lWindow::clear(std::vector<util::ClearArea> clearareas) {
-            // Clear window in certain areas
-            for (util::ClearArea cleararea : clearareas) {
-                XClearArea(this->display, this->window, cleararea.x, cleararea.y, cleararea.width, cleararea.height, false);
-            }
         }
 
         void lWindow::set_title(const std::string& title) {
             this->title = title;
-            if (this->shown) {
-                XStoreName(this->display, this->window, this->title.c_str());
-            }
         }
 
         void lWindow::set_size(int width, int height) {
             this->width = width;
             this->height = height;
-            if (this->shown) {
-                XResizeWindow(this->display, this->window, this->width, this->height);
-            }
         } 
 
         void lWindow::set_position(int x, int y) {
             this->x = x;
             this->y = y;
-            if (this->shown) {
-                XMoveWindow(this->display, this->window, this->x, this->y);
-            }
         } 
 
         std::vector<XEvent> lWindow::get_events() {
             std::vector<XEvent> events = std::vector<XEvent>();
-            while (XPending(this->display)) {
-                XEvent e;
-                XNextEvent(this->display, &e);
-                events.push_back(e);
-            }
             return events;
         }
 
         void lWindow::clear_events() {
-            while (XPending(this->display)) {
-                XEvent e;
-                XNextEvent(this->display, &e);
-            }
         }
 
         void lWindow::draw(drawables::lDrawable& drawable) {
-            drawable.draw(this->display, this->window, this->graphics_context);
+            drawable.draw();
             std::cout << "test" << std::endl;
         }
 
         Font lWindow::get_font() {
-            return XLoadFont(this->display, "fixed");
+            return Font();
         }
 
         void lWindow::main_loop(int fps) {
@@ -136,6 +141,11 @@ namespace lgui {
                 auto end = std::chrono::high_resolution_clock::now();
                 elapsed = end - start;
                 deltatime = elapsed.count() / 1000000000.0;
+                glfwGetFramebufferSize(this->glwindow, &width, &height);
+                for (auto const& pair : this->objects) {
+                    pair.second->update_viewport(this->x, this->y);
+                    pair.second->update(deltatime);
+                }
                 for (auto const& pair : this->objects) {
                     std::vector<util::WindowRequest> requests = pair.second->update(deltatime);
                     for (util::WindowRequest request : requests) {
@@ -146,7 +156,7 @@ namespace lgui {
                         } else if (request.type & UPDATETITLE) {
                             this->set_title(request.title);
                         } else if (request.type & UPDATEBACKGROUNDCOLOUR) {
-                            this->set_background_colour(request.background_colour);
+                            this->old_set_background_colour(request.background_colour);
                         } else if (request.type & UPDATEBORDERCOLOUR) {
                             ;
                         } else if (request.type & UPDATEBORDERWIDTH) {
@@ -159,13 +169,8 @@ namespace lgui {
                         }
                     }
                 }
-                this->clear(clearareas);
-                for (auto const& pair : this->objects) {
-                    pair.second->draw(this->display, this->window, this->graphics_context);
-                }
-                this->flush();
                 start = std::chrono::high_resolution_clock::now();
-                for (XEvent e : this->get_events()) {
+                /*for (XEvent e : this->get_events()) {
                     std::vector<util::WindowRequest> requests;
                     if (e.type == Expose) {
                         for (auto const& pair : this->objects) {
@@ -203,7 +208,7 @@ namespace lgui {
                             this->set_size(request.width, request.height);
                             this->set_position(request.x, request.y);
                             this->set_title(request.title);
-                            this->set_background_colour(request.background_colour);
+                            this->old_set_background_colour(request.background_colour);
                         } else if (request.type == UPDATESIZE) {
                             this->set_size(request.width, request.height);
                         } else if (request.type == UPDATEPOSITION) {
@@ -211,7 +216,7 @@ namespace lgui {
                         } else if (request.type == UPDATETITLE) {
                             this->set_title(request.title);
                         } else if (request.type == UPDATEBACKGROUNDCOLOUR) {
-                            this->set_background_colour(request.background_colour);
+                            this->old_set_background_colour(request.background_colour);
                         } else if (request.type == UPDATEBORDERCOLOUR) {
                             ;
                         } else if (request.type == UPDATEBORDERWIDTH) {
@@ -223,8 +228,17 @@ namespace lgui {
                             return;
                         }
                     }
+                }*/
+                this->clear();
+                for (auto const& pair : this->objects) {
+                    pair.second->draw();
                 }
-                XSync(this->display, true);
+                this->flush();
+                if (glfwWindowShouldClose(this->glwindow)) {
+                    glfwDestroyWindow(this->glwindow);
+                    glfwTerminate();
+                    break;
+                }
             }
         }
 

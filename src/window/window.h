@@ -1,5 +1,8 @@
 #include "../util/util.h"
 #include "X11/Xlib.h"
+#define GLFW_INCLUDE_NONE
+#include "glad/glad.h"
+#include <GLFW/glfw3.h>
 #include "../drawables/drawables.h"
 #include "../drawables/objects/objects.h"
 #include <string>
@@ -20,14 +23,16 @@ namespace lgui {
                 std::string title;
                 int width, height;
                 int x, y;
+                util::OldColour old_background_colour;
                 util::Colour background_colour;
-                util::Colour border_colour;
+                util::OldColour border_colour;
                 XColor xbackground_colour;
                 XColor xborder_colour;
                 bool shown = false;
                 int border_width;
                 int black_colour;
                 int white_colour;
+                GLFWwindow* glwindow;
                 Display* display;
                 Window window;
                 GC graphics_context;
@@ -38,22 +43,19 @@ namespace lgui {
                  * 
                  */
                 lWindow() {
+                    glfwInit();
+                    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+                    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+                    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+                    glfwWindowHint(GLFW_TRANSPARENT_FRAMEBUFFER, GLFW_TRUE);
                     this->title = "";
-                    this->display = XOpenDisplay(NULL);
                     this->x = 0;
                     this->y = 0;
                     this->width = 1;
                     this->height = 1;
-                    this->black_colour = BlackPixel(this->display, DefaultScreen(this->display));
-                    this->white_colour = WhitePixel(this->display, DefaultScreen(this->display));
+                    this->old_background_colour = util::OldColour(0, 0, 0, 255);
                     this->background_colour = util::Colour(0, 0, 0, 255);
-                    this->border_colour = util::Colour(0, 0, 0, 255);
-                    Colormap colormap = DefaultColormap(this->display, DefaultScreen(this->display));
-                    this->xbackground_colour.red = this->background_colour.r;
-                    this->xbackground_colour.green = this->background_colour.g;
-                    this->xbackground_colour.blue = this->background_colour.b;
-                    this->xbackground_colour.flags = DoRed | DoGreen | DoBlue;
-                    XAllocColor(this->display, colormap, &this->xbackground_colour);
+                    this->border_colour = util::OldColour(0, 0, 0, 255);
                     this->border_width = 0;
                 }
                 /**
@@ -91,13 +93,14 @@ namespace lgui {
                  * 
                  * @param colour The background colour of the window
                  */
-                void set_background_colour(const util::Colour& colour);
+                void old_set_background_colour(const util::OldColour& colour);
                 /**
                  * @brief Sets the border colour of the window
                  * 
                  * @param colour The border colour of the window
                  */
-                void set_border_colour(const util::Colour& colour);
+                void set_background_colour(const util::Colour& colour);
+                void set_border_colour(const util::OldColour& colour);
                 /**
                  * @brief Sets the border width of the window (DOES NOT WORK)
                  * 

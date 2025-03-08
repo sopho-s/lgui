@@ -1,3 +1,4 @@
+#pragma once
 namespace lgui {
     namespace drawables {
         namespace objects {
@@ -40,6 +41,32 @@ namespace lgui {
                      * @param height The height of the bound
                      */
                     virtual void set_size(int width, int height) = 0;
+            };
+
+            class TriangleBound : public Bound {
+                private:
+                    util::Point p1, p2, p3;
+                public:
+                    TriangleBound() {}
+                    TriangleBound(util::Point p1, util::Point p2, util::Point p3) {
+                        this->p1 = p1;
+                        this->p2 = p2;
+                        this->p3 = p3;
+                    }
+                    bool contains(int x, int y) override {
+                        return false;
+                    }
+                    void set_position(int x, int y) override {
+                        this->p1.x += x;
+                        this->p1.y += y;
+                        this->p2.x += x;
+                        this->p2.y += y;
+                        this->p3.x += x;
+                        this->p3.y += y;
+                    }
+                    void set_size(int width, int height) override {
+                        ;
+                    }
             };
 
             /**
