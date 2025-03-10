@@ -1,3 +1,4 @@
+#include "../../util/util.h"
 #pragma once
 namespace lgui {
     namespace drawables {
@@ -26,14 +27,14 @@ namespace lgui {
                      * @return true If the bound contains the point
                      * @return false If the bound does not contain the point
                      */
-                    virtual bool contains(int x, int y) = 0;
+                    virtual bool contains(util::Point point) = 0;
                     /**
                      * @brief Sets the position of the bound
                      * 
                      * @param x The x position of the bound
                      * @param y The y position of the bound
                      */
-                    virtual void set_position(int x, int y) = 0;
+                    virtual void set_position(util::Point point) = 0;
                     /**
                      * @brief Sets the size of the bound
                      * 
@@ -45,144 +46,41 @@ namespace lgui {
 
             class TriangleBound : public Bound {
                 private:
+                    util::Point center;
                     util::Point p1, p2, p3;
                 public:
                     TriangleBound() {}
-                    TriangleBound(util::Point p1, util::Point p2, util::Point p3) {
+                    TriangleBound(util::Point center, util::Point p1, util::Point p2, util::Point p3) {
+                        this->center = center;
                         this->p1 = p1;
                         this->p2 = p2;
                         this->p3 = p3;
                     }
-                    bool contains(int x, int y) override {
+                    bool contains(util::Point point) override {
+                        double theta1 = ((this->p2.ytrue - this->p3.ytrue) * (point.xtrue - this->p3.xtrue) + (this->p3.xtrue - this->p2.xtrue) * (point.ytrue - this->p3.ytrue)) / ((this->p2.ytrue - this->p3.ytrue) * (this->p1.xtrue - this->p3.xtrue) + (this->p3.xtrue - this->p2.xtrue) * (this->p1.ytrue - this->p3.ytrue));
+                        double theta2 = ((this->p3.ytrue - this->p1.ytrue) * (point.xtrue - this->p3.xtrue) + (this->p1.xtrue - this->p3.xtrue) * (point.ytrue - this->p3.ytrue)) / ((this->p2.ytrue - this->p3.ytrue) * (this->p1.xtrue - this->p3.xtrue) + (this->p3.xtrue - this->p2.xtrue) * (this->p1.ytrue - this->p3.ytrue));
+                        double theta3 = 1 - theta1 - theta2;
+                        if (theta1 >= 0 && theta1 <= 1 && theta2 >= 0 && theta2 <= 1 && theta3 >= 0 && theta3 <= 1) {
+                            return true;
+                        }
                         return false;
                     }
-                    void set_position(int x, int y) override {
-                        this->p1.x += x;
-                        this->p1.y += y;
-                        this->p2.x += x;
-                        this->p2.y += y;
-                        this->p3.x += x;
-                        this->p3.y += y;
+                    void set_position(util::Point point) override {
+                        util::Point diff = this->center - point;
+                        this->center = point;
+                        this->p1 = this->p1 - diff;
+                        this->p2 = this->p2 - diff;
+                        this->p3 = this->p3 - diff;
                     }
+
+                    void set_points(util::Point p1, util::Point p2, util::Point p3) {
+                        this->p1 = p1;
+                        this->p2 = p2;
+                        this->p3 = p3;
+                    }
+                    
                     void set_size(int width, int height) override {
                         ;
-                    }
-            };
-
-            /**
-             * @brief A rectangle bound
-             * 
-             */
-            class RectangleBound : public Bound {
-                private:
-                    int x, y, width, height;
-                public:
-                    /**
-                     * @brief Construct a new Rectangle Bound object
-                     * 
-                     */
-                    RectangleBound() {}
-                    /**
-                     * @brief Construct a new Rectangle Bound object
-                     * 
-                     * @param x The x position of the bound
-                     * @param y The y position of the bound
-                     * @param width The width of the bound
-                     * @param height The height of the bound
-                     */
-                    RectangleBound(int x, int y, int width, int height) {
-                        this->x = x;
-                        this->y = y;
-                        this->width = width;
-                        this->height = height;
-                    }
-                    /**
-                     * @brief Checks if the bound contains a point
-                     * 
-                     * @param x The x position of the point
-                     * @param y The y position of the point
-                     * @return true If the bound contains the point
-                     * @return false If the bound does not contain the point
-                     */
-                    bool contains(int x, int y) override {
-                        return x >= this->x && x <= this->x + this->width && y >= this->y && y <= this->y + this->height;
-                    }
-                    /**
-                     * @brief Sets the position of the bound
-                     * 
-                     * @param x The x position of the bound
-                     * @param y The y position of the bound
-                     */
-                    void set_position(int x, int y) override {
-                        this->x = x;
-                        this->y = y;
-                    }
-                    /**
-                     * @brief Sets the size of the bound
-                     * 
-                     * @param width The width of the bound
-                     * @param height The height of the bound
-                     */
-                    void set_size(int width, int height) override {
-                        this->width = width;
-                        this->height = height;
-                    }
-            };
-
-            /**
-             * @brief A circle bound
-             * 
-             */
-            class CircleBound : public Bound {
-                private:
-                    int x, y, radius;
-                public:
-                    /**
-                     * @brief Construct a new Circle Bound object
-                     * 
-                     */
-                    CircleBound() {}
-                    /**
-                     * @brief Construct a new Circle Bound object
-                     * 
-                     * @param x The x position of the bound
-                     * @param y The y position of the bound
-                     * @param radius The radius of the bound
-                     */
-                    CircleBound(int x, int y, int radius) {
-                        this->x = x;
-                        this->y = y;
-                        this->radius = radius;
-                    }
-                    /**
-                     * @brief Checks if the bound contains a point
-                     * 
-                     * @param x The x position of the point
-                     * @param y The y position of the point
-                     * @return true If the bound contains the point
-                     * @return false If the bound does not contain the point
-                     */
-                    bool contains(int x, int y) override {
-                        return (x - this->x) * (x - this->x) + (y - this->y) * (y - this->y) <= this->radius * this->radius;
-                    }
-                    /**
-                     * @brief Sets the position of the bound
-                     * 
-                     * @param x The x position of the bound
-                     * @param y The y position of the bound
-                     */
-                    void set_position(int x, int y) override {
-                        this->x = x;
-                        this->y = y;
-                    }
-                    /**
-                     * @brief Sets the size of the bound
-                     * 
-                     * @param width The width of the bound
-                     * @param height The height of the bound
-                     */
-                    void set_size(int width, int height) override {
-                        this->radius = width;
                     }
             };
         }

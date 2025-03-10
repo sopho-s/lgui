@@ -21,6 +21,12 @@
 #define UPDATECOLOUR 1 << 3
 #define ALLCHANGES UPDATESIZE | UPDATEPOSITION | UPDATEROTATION | UPDATECOLOUR
 
+#define NOMOUSE 0
+#define LEFTMOUSE 1 << 0
+#define RIGHTMOUSE 1 << 1
+#define MIDDLEMOUSE 1 << 2
+
+
 extern int global_width;
 extern int global_height;
 
@@ -80,11 +86,11 @@ namespace lgui {
                 this->y = -this->y;
             }
             bool operator==(const Point& other) const {
-                return this->x == other.x && this->y == other.y;
+                return this->xtrue == other.xtrue && this->ytrue == other.ytrue;
             }
 
             bool operator!=(const Point& other) const {
-                return this->x != other.x || this->y != other.y;
+                return this->xtrue != other.xtrue || this->ytrue != other.ytrue;
             }
 
             Point operator+(const Point& other) const {
@@ -115,22 +121,21 @@ namespace lgui {
          * 
          */
         struct StateInfo {
-            int x, y;
-            bool mousepress, mouserelease;
+            Point position;
+            int mousepress, mouserelease;
             bool keypress, keyrelease;
             int keycode;
-            StateInfo() {
-                this->x = 0;
-                this->y = 0;
-                this->mousepress = false;
-                this->mouserelease = false;
+            StateInfo() 
+            {
+                this->position = Point(0, 0);
+                this->mousepress = NOMOUSE;
+                this->mouserelease = NOMOUSE;
                 this->keypress = false;
                 this->keyrelease = false;
                 this->keycode = 0;
             }
-            StateInfo(int x, int y, bool mousepress, bool mouserelease, bool keypress, bool keyrelease, int keycode) {
-                this->x = x;
-                this->y = y;
+            StateInfo(Point position, int mousepress, int mouserelease, bool keypress, bool keyrelease, int keycode) {
+                this->position = position;
                 this->mousepress = mousepress;
                 this->mouserelease = mouserelease;
                 this->keypress = keypress;

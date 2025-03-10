@@ -94,67 +94,44 @@ namespace lgui {
                 glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
                 fprintf(stderr, "ERROR::SHADER::PROGRAM::LINKING_FAILED\n%s\n", infoLog);
             }
-            this->vertices1[0] = p1.x;
-            this->vertices1[1] = p1.y;
-            this->vertices1[2] = p2.x;
-            this->vertices1[3] = p2.y;
-            this->vertices1[4] = p3.x;
-            this->vertices1[5] = p3.y;
-            this->vertices2[0] = p3.x;
-            this->vertices2[1] = p3.y;
-            this->vertices2[2] = p4.x;
-            this->vertices2[3] = p4.y;
-            this->vertices2[4] = p1.x;
-            this->vertices2[5] = p1.y;
+            this->vertices[0] = p1.x;
+            this->vertices[1] = p1.y;
+            this->vertices[2] = p2.x;
+            this->vertices[3] = p2.y;
+            this->vertices[4] = p3.x;
+            this->vertices[5] = p3.y;
+            this->vertices[6] = p4.x;
+            this->vertices[7] = p4.y;
             glGenVertexArrays(1, &VAO);
             glGenBuffers(1, &VBO);
+            glGenBuffers(1, &EBO);
             glBindVertexArray(VAO);
             glBindBuffer(GL_ARRAY_BUFFER, VBO);
-            glBufferData(GL_ARRAY_BUFFER, sizeof(vertices1), vertices1, GL_STATIC_DRAW);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
             glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
             glEnableVertexAttribArray(0);
-            glGenVertexArrays(1, &VAO2);
-            glGenBuffers(1, &VBO2);
-            glBindVertexArray(VAO2);
-            glBindBuffer(GL_ARRAY_BUFFER, VBO2);
-            glBufferData(GL_ARRAY_BUFFER, sizeof(vertices2), vertices2, GL_STATIC_DRAW);
-            glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
-            glEnableVertexAttribArray(0);
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+            glBindVertexArray(0);
         }
 
         void lQuad::draw() {
-            this->vertices1[0] = p1.x;
-            this->vertices1[1] = p1.y;
-            this->vertices1[2] = p2.x;
-            this->vertices1[3] = p2.y;
-            this->vertices1[4] = p3.x;
-            this->vertices1[5] = p3.y;
-            this->vertices2[0] = p3.x;
-            this->vertices2[1] = p3.y;
-            this->vertices2[2] = p4.x;
-            this->vertices2[3] = p4.y;
-            this->vertices2[4] = p1.x;
-            this->vertices2[5] = p1.y;
-            glBufferData(GL_ARRAY_BUFFER, sizeof(vertices1), vertices1, GL_STATIC_DRAW);
+            this->vertices[0] = p1.x;
+            this->vertices[1] = p1.y;
+            this->vertices[2] = p2.x;
+            this->vertices[3] = p2.y;
+            this->vertices[4] = p3.x;
+            this->vertices[5] = p3.y;
+            this->vertices[6] = p4.x;
+            this->vertices[7] = p4.y;
+            glBindBuffer(GL_ARRAY_BUFFER, VBO);
+            glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
             glUseProgram(shaderProgram);
             glBindVertexArray(VAO);
             int colorLocation = glGetUniformLocation(shaderProgram, "triColour");
             glUniform4f(colorLocation, 1, 1, 0, 1.0f);
-            glBindBuffer(GL_ARRAY_BUFFER, VBO);
-            glDrawArrays(GL_TRIANGLES, 0, 3);
-            glBufferData(GL_ARRAY_BUFFER, sizeof(vertices2), vertices2, GL_STATIC_DRAW);
-            glBindVertexArray(VAO2);
-            glBindBuffer(GL_ARRAY_BUFFER, VBO2);
-            glDrawArrays(GL_TRIANGLES, 0, 3);
-        }
-
-        void lCircle::draw() {
-        }
-
-        void lText::draw() {
-        }
-
-        void lPNGImage::draw() {
+            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         }
     }
 }

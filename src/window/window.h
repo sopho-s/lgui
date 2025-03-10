@@ -10,6 +10,7 @@
 #include <chrono>
 #include <thread>
 #include <map>
+#include <algorithm>
 #pragma once
 
 namespace lgui {
@@ -89,12 +90,6 @@ namespace lgui {
                  */
                 void set_position(int x, int y);
                 /**
-                 * @brief Sets the background colour of the window
-                 * 
-                 * @param colour The background colour of the window
-                 */
-                void old_set_background_colour(const util::OldColour& colour);
-                /**
                  * @brief Sets the border colour of the window
                  * 
                  * @param colour The border colour of the window
@@ -134,7 +129,7 @@ namespace lgui {
                  * 
                  * @return std::vector<XEvent> The events that have happened since the last call to this function
                  */
-                std::vector<XEvent> get_events();
+                std::vector<util::StateInfo> get_events();
                 /**
                  * @brief Clears the events that have happened since the last call to get_events (DOES NOT WORK)
                  * 

@@ -5,6 +5,34 @@
 int global_width = 0;
 int global_height = 0;
 
+std::vector<lgui::util::StateInfo> interactions = std::vector<lgui::util::StateInfo>();
+
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
+    double xpos, ypos;
+    glfwGetCursorPos(window, &xpos, &ypos);
+    lgui::util::StateInfo info = lgui::util::StateInfo(lgui::util::Point(xpos, ypos), NOMOUSE, NOMOUSE, false, false, 0);
+    if (button == GLFW_MOUSE_BUTTON_LEFT) {
+        if (action == GLFW_PRESS) {
+            info.mousepress = LEFTMOUSE;
+        } else if (action == GLFW_RELEASE) {
+            info.mouserelease = LEFTMOUSE;
+        }
+    } else if (button == GLFW_MOUSE_BUTTON_RIGHT) {
+        if (action == GLFW_PRESS) {
+            info.mousepress = RIGHTMOUSE;
+        } else if (action == GLFW_RELEASE) {
+            info.mouserelease = RIGHTMOUSE;
+        }
+    } else if (button == GLFW_MOUSE_BUTTON_MIDDLE) {
+        if (action == GLFW_PRESS) {
+            info.mousepress = MIDDLEMOUSE;
+        } else if (action == GLFW_RELEASE) {
+            info.mouserelease = MIDDLEMOUSE;
+        }
+    }
+    interactions.push_back(info);
+}
+
 void GLAPIENTRY openglDebugCallback(GLenum source, GLenum type, GLuint id,
     GLenum severity, GLsizei length,
     const GLchar* message, const void* userParam) {
@@ -40,6 +68,7 @@ namespace lgui {
                 fprintf(stderr, "Failed to initialize GLAD\n");
             }
             glfwSetFramebufferSizeCallback(this->glwindow, framebuffer_size_callback);
+            glfwSetMouseButtonCallback(this->glwindow, mouse_button_callback);
             global_width = this->width;
             global_height = this->height;
             glViewport(0, 0, this->width, this->height);
@@ -61,10 +90,6 @@ namespace lgui {
             this->shown = false;
         }
 
-        void lWindow::old_set_background_colour(const util::OldColour& colour) {
-            
-        }
-
         void lWindow::set_background_colour(const util::Colour& colour) {
             // Set background colour
             this->background_colour.a = colour.a;
@@ -83,10 +108,7 @@ namespace lgui {
 
         void lWindow::clear() {
             // Clear window
-            glClear(GL_COLOR_BUFFER_BIT);
-        }
-
-        void lWindow::clear(std::vector<util::ClearArea> clearareas) {
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         }
 
         void lWindow::set_title(const std::string& title) {
@@ -103,12 +125,11 @@ namespace lgui {
             this->y = y;
         } 
 
-        std::vector<XEvent> lWindow::get_events() {
-            std::vector<XEvent> events = std::vector<XEvent>();
+        std::vector<util::StateInfo> lWindow::get_events() {
+            std::vector<util::StateInfo> events = std::vector<util::StateInfo>(interactions.size());
+            std::copy(interactions.begin(), interactions.end(), events.begin());
+            interactions.clear();
             return events;
-        }
-
-        void lWindow::clear_events() {
         }
 
         void lWindow::draw(drawables::lDrawable& drawable) {
@@ -131,20 +152,25 @@ namespace lgui {
                 if (waitedtime < time) {
                     std::this_thread::sleep_for(std::chrono::duration<float>(time - waitedtime));
                 }
-                std::vector<util::ClearArea> clearareas = std::vector<util::ClearArea>();
-                for (auto const& pair: this->objects) {
-                    std::vector<util::ClearArea> objectclearareas = pair.second->get_clear_areas();
-                    for (util::ClearArea cleararea : objectclearareas) {
-                        clearareas.push_back(cleararea);
-                    }
-                }
                 auto end = std::chrono::high_resolution_clock::now();
                 elapsed = end - start;
                 deltatime = elapsed.count() / 1000000000.0;
+                std::vector<util::StateInfo> events = this->get_events();
                 glfwGetFramebufferSize(this->glwindow, &width, &height);
                 for (auto const& pair : this->objects) {
                     pair.second->update_viewport(this->x, this->y);
                     pair.second->update(deltatime);
+                    for (util::StateInfo event : events) {
+                        if (event.mousepress) {
+                            pair.second->mouse_press(event);
+                        } else if (event.mouserelease) {
+                            pair.second->mouse_release(event);
+                        } else if (event.keypress) {
+                            pair.second->key_press(event);
+                        } else if (event.keyrelease) {
+                            pair.second->key_release(event);
+                        }
+                    }
                 }
                 for (auto const& pair : this->objects) {
                     std::vector<util::WindowRequest> requests = pair.second->update(deltatime);
@@ -156,7 +182,7 @@ namespace lgui {
                         } else if (request.type & UPDATETITLE) {
                             this->set_title(request.title);
                         } else if (request.type & UPDATEBACKGROUNDCOLOUR) {
-                            this->old_set_background_colour(request.background_colour);
+                            ;
                         } else if (request.type & UPDATEBORDERCOLOUR) {
                             ;
                         } else if (request.type & UPDATEBORDERWIDTH) {
@@ -170,65 +196,6 @@ namespace lgui {
                     }
                 }
                 start = std::chrono::high_resolution_clock::now();
-                /*for (XEvent e : this->get_events()) {
-                    std::vector<util::WindowRequest> requests;
-                    if (e.type == Expose) {
-                        for (auto const& pair : this->objects) {
-                            requests = pair.second->update(deltatime);
-                        }
-                        this->flush();
-                    } else if (e.type == KeyPress) {
-                        util::StateInfo updateinfo = util::StateInfo(e.xkey.x, e.xkey.y, false, false, true, false, e.xkey.keycode);
-                        for (auto const& pair : this->objects) {
-                            requests = pair.second->key_press(util::StateInfo(0, 0, false, false, true, false, e.xkey.keycode));
-                        }
-                    } else if (e.type == KeyRelease) {
-                        util::StateInfo updateinfo = util::StateInfo(e.xkey.x, e.xkey.y, false, false, false, true, e.xkey.keycode);
-                        for (auto const& pair : this->objects) {
-                            requests = pair.second->key_release(util::StateInfo(0, 0, false, false, false, true, e.xkey.keycode));
-                        }
-                    } else if (e.type == ButtonPress) {
-                        util::StateInfo updateinfo = util::StateInfo(e.xbutton.x, e.xbutton.y, true, false, false, false, e.xbutton.button);
-                        for (auto const& pair : this->objects) {
-                            requests = pair.second->mouse_press(util::StateInfo(e.xbutton.x, e.xbutton.y, true, false, false, false, e.xbutton.button));
-                        }
-                    } else if (e.type == ButtonRelease) {
-                        util::StateInfo updateinfo = util::StateInfo(e.xbutton.x, e.xbutton.y, false, true, false, false, e.xbutton.button);
-                        for (auto const& pair : this->objects) {
-                            requests = pair.second->mouse_release(util::StateInfo(e.xbutton.x, e.xbutton.y, false, true, false, false, e.xbutton.button));
-                        }
-                    } else if (e.type == MotionNotify) {
-                        util::StateInfo updateinfo = util::StateInfo(e.xmotion.x, e.xmotion.y, false, false, false, false, 0);
-                        for (auto const& pair : this->objects) {
-                            requests = pair.second->mouse_move(util::StateInfo(e.xmotion.x, e.xmotion.y, false, false, false, false, 0));
-                        }
-                    }
-                    for (util::WindowRequest request : requests) {
-                        if (request.type == NOTYPE) {
-                            this->set_size(request.width, request.height);
-                            this->set_position(request.x, request.y);
-                            this->set_title(request.title);
-                            this->old_set_background_colour(request.background_colour);
-                        } else if (request.type == UPDATESIZE) {
-                            this->set_size(request.width, request.height);
-                        } else if (request.type == UPDATEPOSITION) {
-                            this->set_position(request.x, request.y);
-                        } else if (request.type == UPDATETITLE) {
-                            this->set_title(request.title);
-                        } else if (request.type == UPDATEBACKGROUNDCOLOUR) {
-                            this->old_set_background_colour(request.background_colour);
-                        } else if (request.type == UPDATEBORDERCOLOUR) {
-                            ;
-                        } else if (request.type == UPDATEBORDERWIDTH) {
-                            ;
-                        } else if (request.type == UPDATEBORDERRADIUS) {
-                            ;
-                        } else if (request.type == CLOSE) {
-                            this->hide();
-                            return;
-                        }
-                    }
-                }*/
                 this->clear();
                 for (auto const& pair : this->objects) {
                     pair.second->draw();
